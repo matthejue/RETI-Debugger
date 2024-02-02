@@ -1,66 +1,63 @@
 local Layout = require("nui.layout")
+local Popup = require("nui.popup")
 
 local M = {}
-
-local Popup = require("nui.popup")
 
 local popup_options = {
   enter = false,
   focusable = true,
   zindex = 50,
+  border = {
+    style = "single",
+    text = {
+      top_align = "center",
+    }
+  },
   buf_options = {
     modifiable = true,
     readonly = false,
   },
 }
 
-M.popup_registers = Popup(vim.tbl_extend("force", popup_options,
+M.popups = {}
+
+M.popups.registers = Popup(vim.tbl_deep_extend("force", popup_options,
   {
     enter = true,
     border = {
-      style = "single",
       text = {
-        top_align = "center",
         top = "Registers"
       }
     }
   }))
-M.popup_eprom = Popup(vim.tbl_extend("keep", popup_options,
+M.popups.eprom = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
-      style = "single",
       text = {
-        top_align = "center",
         top = "EPROM"
       }
     }
   }))
-M.popup_uart = Popup(vim.tbl_extend("keep", popup_options,
+M.popups.uart = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
-      style = "single",
       text = {
-        top_align = "center",
         top = "UART"
       }
     }
   }))
-M.popup_sram = Popup(vim.tbl_extend("keep", popup_options,
+M.popups.sram = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
-      style = "single",
       text = {
-        top_align = "center",
         top = "SRAM"
       }
     }
   }))
-M.popup_sram2 = Popup(vim.tbl_extend("keep", popup_options,
+M.popups.sram2 = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
-      style = "single",
       text = {
-        top_align = "center",
         top = "SRAM"
       }
     }
@@ -79,15 +76,15 @@ M.layout = Layout(
     },
   },
   Layout.Box({
-    Layout.Box(M.popup_registers, { size = "20%" }), -- +1
+    Layout.Box(M.popups.registers, { size = "20%" }), -- +1
     Layout.Box({
-        Layout.Box(M.popup_eprom, { size = "50%" }),
-        Layout.Box(M.popup_uart, { size = "52%" }), -- +2
+        Layout.Box(M.popups.eprom, { size = "50%" }),
+        Layout.Box(M.popups.uart, { size = "52%" }), -- +2
       },
       { size = "27%", dir = "col" }
     ),
-    Layout.Box(M.popup_sram, { size = "27%" }),
-    Layout.Box(M.popup_sram2, { size = "27%" }),
+    Layout.Box(M.popups.sram, { size = "27%" }),
+    Layout.Box(M.popups.sram2, { size = "27%" }),
   }, { size = "100%", dir = "row" })
 )
 
