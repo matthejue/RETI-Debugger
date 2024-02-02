@@ -1,51 +1,94 @@
+local Layout = require("nui.layout")
+
 local M = {}
 
-M.buffers = {}
-M.windows = {}
+local Popup = require("nui.popup")
 
-function M.create_windows(registers, eprom, uart, sram)
-  -- get size of current editor
-  local width = vim.api.nvim_get_option("columns")
-  local height = vim.api.nvim_get_option("lines")
+local popup_options = {
+  enter = false,
+  focusable = true,
+  zindex = 50,
+  buf_options = {
+    modifiable = true,
+    readonly = false,
+  },
+}
 
-  win_config = {
-    anchor = "NW",
-    focusable = true,
-    width = math.floor(width / 4),
-    height = height,
-    zindex = 1,
-  }
+M.popup_registers = Popup(vim.tbl_extend("force", popup_options,
+  {
+    enter = true,
+    border = {
+      style = "single",
+      text = {
+        top_align = "center",
+        top = "Registers"
+      }
+    }
+  }))
+M.popup_eprom = Popup(vim.tbl_extend("keep", popup_options,
+  {
+    border = {
+      style = "single",
+      text = {
+        top_align = "center",
+        top = "EPROM"
+      }
+    }
+  }))
+M.popup_uart = Popup(vim.tbl_extend("keep", popup_options,
+  {
+    border = {
+      style = "single",
+      text = {
+        top_align = "center",
+        top = "UART"
+      }
+    }
+  }))
+M.popup_sram = Popup(vim.tbl_extend("keep", popup_options,
+  {
+    border = {
+      style = "single",
+      text = {
+        top_align = "center",
+        top = "SRAM"
+      }
+    }
+  }))
+M.popup_sram2 = Popup(vim.tbl_extend("keep", popup_options,
+  {
+    border = {
+      style = "single",
+      text = {
+        top_align = "center",
+        top = "SRAM"
+      }
+    }
+  }))
 
-  -- registers window
-  M.buffers.buf1_id = vim.api.nvim_create_buf(false, true)
-  win_addtional = {
+local width = vim.api.nvim_get_option("columns")
+local height = vim.api.nvim_get_option("lines")
+
+M.layout = Layout(
+  {
     relative = "editor",
-    row = 0,
-    col = 0
-  } 
-  M.windows.win1_id = vim.api.nvim_open_win(M.buffers.buf1_id, false, vim.tbl_extend("force", win_config, win_addtional))
-
-  -- eprom window
-  M.buffers.buf2_id = vim.api.nvim_create_buf(false, true)
-  win_config.col = calculate_position(1, width)
-  M.windows.win2_id = vim.api.nvim_open_win(M.buffers.buf2_id, true, win_config)
-
-  -- uart window
-  M.buffers.buf3_id = vim.api.nvim_create_buf(false, true)
-  win_config.col = calculate_position(2, width)
-  M.windows.win3_id = vim.api.nvim_open_win(M.buffers.buf3_id, false, win_config)
-
-  -- sram window
-  M.buffers.buf4_id = vim.api.nvim_create_buf(false, true)
-  win_config.col = calculate_position(3, width)
-  M.windows.win4_id = vim.api.nvim_open_win(M.buffers.buf4_id, false, win_config)
-end
-
-function M.update_buffers(registers, eprom, uart, sram)
-  vim.api.nvim_buf_set_lines(M.buffers.buf1_id, 0, -1, true, registers)
-  vim.api.nvim_buf_set_lines(M.buffers.buf2_id, 0, -1, true, eprom)
-  vim.api.nvim_buf_set_lines(M.buffers.buf3_id, 0, -1, true, uart)
-  vim.api.nvim_buf_set_lines(M.buffers.buf4_id, 0, -1, true, sram)
-end
+    position = "50%",
+    size = {
+      width = width,
+      height = height,
+    },
+  },
+  Layout.Box({
+    Layout.Box(M.popup_registers, { size = "20%" }), -- +1
+    Layout.Box({
+        Layout.Box(M.popup_eprom, { size = "50%" }),
+        Layout.Box(M.popup_uart, { size = "52%" }), -- +2
+      },
+      { size = "27%", dir = "col" }
+    ),
+    Layout.Box(M.popup_sram, { size = "27%" }),
+    Layout.Box(M.popup_sram2, { size = "27%" }),
+  }, { size = "100%", dir = "row" })
+)
 
 return M

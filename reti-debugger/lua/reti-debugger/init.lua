@@ -1,6 +1,6 @@
 local config = require("reti-debugger.config")
 local windows = require("reti-debugger.windows")
--- local test = require("reti-debugger.test")
+local util = require("reti-debugger.util")
 
 local M = {}
 
@@ -15,26 +15,37 @@ local M = {}
 -- [ ] SigTerm an RETIInterpreter weiterleiten
 -- [ ] .reti filetype erkennen, Treesitter parser, weitere Datentypen für ftplugin
 -- [ ] callback functions nachsehen und die sache mit vim.loop
+-- [ ] scrollbind, scb
 
 -- create empty table for running jobs
 M.job_counter = 0
 
--- function that reads from named pipe and prints it
-function read_from_pipe(pipe_name)
-  local f = io.open("/tmp/" .. pipe_name, "r")
-  if f == nil then
-    print("Pipe /tmp/" .. pipe_name .. " not found")
-    return
-  end
-  local line = f:read("*a")
-  f:close()
-  return line
+function setup_pipes()
+  vim.fn.system("mkdir /tmp/reti-debugger")
+  vim.fn.system("mkfifo /tmp/reti-debugger/command")
+  vim.fn.system("mkfifo /tmp/reti-debugger/registers")
+  vim.fn.system("mkfifo /tmp/reti-debugger/eprom")
+  vim.fn.system("mkfifo /tmp/reti-debugger/uart")
+  vim.fn.system("mkfifo /tmp/reti-debugger/sram")
 end
 
-function write_to_pipe(command)
-  local f = io.open("/tmp/command", "w")
-  f:write(command)
-  f:close()
+function setup_options()
+    vim.api.nvim_win_set_option(windows.popup_sram.winid, "scrolloff", 999)
+end
+
+-- functiont that starts a asynchronous python script in background
+function start_interpreter()
+  vim.fn.jobstart(
+    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/run/gcd.reti -S",
+    {
+      on_exit = function()
+        M.job_counter = M.job_counter - 1
+        vim.fn.system("rm -r /tmp/reti-debugger")
+        print("Interpreter terminated")
+      end
+    })
+
+  M.job_counter = M.job_counter + 1
 end
 
 function update()
@@ -42,7 +53,6 @@ function update()
   local eprom
   local uart
   local sram
-  local test
 
   -- test if named pipe exists
   if M.job_counter == 0 then
@@ -50,58 +60,50 @@ function update()
     return
   end
 
-  registers = read_from_pipe("registers")
-  -- eprom = read_from_pipe("eprom")
-  -- uart = read_from_pipe("uart")
-  -- sram = read_from_pipe("sram")
-  -- local reg_buffer = vim.api.nvim_create_buf(true, true)
-  -- vim.api.nvim_buf_set_lines(reg_buffer, 0, -1, true, vim.split(registers, "\n"))
-  -- local reg_window = vim.api.nvim_open_win(reg_buffer, true, {
-  --   relative = "editor",
-  --   width = 30,
-  --   height = 10,
-  --   col = 80,
-  --   row = 0,
-  --   border = "minimal",
-  -- })
-  -- neovim get editor width and height
-  -- local width = vim.api.nvim_get_option("columns")
-  -- local height = vim.api.nvim_get_option("lines")
-  print(registers)
-  -- print(eprom)
-  -- print(uart)
-  -- print(sram)
-end
+  registers = util.read_from_pipe("registers")
+  eprom = util.read_from_pipe("eprom")
+  uart = util.read_from_pipe("uart")
+  sram = util.read_from_pipe("sram")
 
--- functiont that starts a asynchronous python script in background
-function start_interpreter()
-  -- named pipe has to created by the plugin, because only the plugin writes to it
-  vim.fn.system("mkfifo /tmp/command")
+  vim.api.nvim_buf_set_lines(windows.popup_registers.bufnr, 0, -1, true, util.split(registers))
+  vim.api.nvim_buf_set_lines(windows.popup_eprom.bufnr, 0, -1, true, util.split(eprom))
+  vim.api.nvim_buf_set_lines(windows.popup_uart.bufnr, 0, -1, true, util.split(uart))
+  vim.api.nvim_buf_set_lines(windows.popup_sram.bufnr, 0, -1, true, util.split(sram))
+  vim.api.nvim_buf_set_lines(windows.popup_sram2.bufnr, 0, -1, true, util.split(sram))
 
-  vim.fn.jobstart(
-    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/run/gcd.reti -S")
-  -- {
-  --   on_exit = function()
-  --     M.job_counter = M.job_counter - 1
-  --     print("Interpreter terminated")
-  --   end
-  -- })
+  local pc_address = tonumber(string.match(registers, "PC: *(%d+)"))
+  local pc_column
 
-  M.job_counter = M.job_counter + 1
+  if pc_address > 2^31 then -- sram 
+    vim.api.nvim_win_set_cursor(windows.popup_sram.winid, {pc_address - 2^31 + 1, 0})
+    local win_heigh = vim.api.nvim_win_get_height(windows.popup_sram.winid)
+    vim.fn.win_gotoid(windows.popup_sram.winid)
+    local virtual_linenr = vim.fn.winline()
+    vim.api.nvim_win_set_cursor(windows.popup_sram2.winid, {pc_address - 2^31 + 1 + (win_heigh - virtual_linenr + 1), 0})
+    vim.fn.win_gotoid(windows.popup_sram2.winid)
+    vim.api.nvim_input("zt")
+  elseif pc_address > 2^30 then -- uart
+    pc_column = pc_address - 2^30
+  else -- eprom
+    pc_column = pc_address
+  end
+
+  -- vim.api.nvim_win_set_option(windows.popup_sram.winid, scroll, value)
 end
 
 function M.setup()
+  setup_pipes()
   start_interpreter()
-  -- windows.create_windows()
-  -- test.layout:mount()
+  windows.layout:mount()
+  setup_options()
   update()
 end
 
 function M.next()
   -- send continue command to pipe
-  write_to_pipe("next")
+  util.write_to_pipe("next")
   update()
-  windows.update_buffers()
+  -- windows.update_buffers()
 end
 
 return M
