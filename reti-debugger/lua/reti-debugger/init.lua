@@ -19,29 +19,32 @@ local M = {}
 -- [ ] scrollbind, scb
 -- [ ] make cursor invisible
 -- [ ] special keybinding for buffer
--- [ ] on winexit stop RETI-Interpreter
 -- [ ] sperre damit nicht mehre Jobs vom REIT-Inerpreter gestartet werden können
+-- [ ] on winexit stop RETI-Interpreter und Command, der das Plugin stoppt
+-- [ ] Einen Comand erstellen, der das Plugin startet
+-- [ ] Command um zwischen den Fenstern zu switchen
+-- [ ] Command oder einfach Funtion, um einen Register Wert zu ändern
+-- [ ] Command odere einfache Funktion, um eine Speicherstelle dauerhaft zu färben
+-- [ ] Sobald der RETI-Interpreter fertig ist muss er das mitteilen, damit das Plugin sicher exiten kann
+-- [ ] Clock Cycles
+-- [ ] Nowrap einstellen
+-- [ ] herausfinden, wieso Compiler aufhört zu funktionieren beim ausführeh
 
--- create empty table for running jobs
-M.job_counter = 0
+Job_Counter = 0
 
-function setup_pipes()
+local function setup_pipes()
   vim.fn.system("mkdir /tmp/reti-debugger")
   vim.fn.system("mkfifo /tmp/reti-debugger/command")
   vim.fn.system("mkfifo /tmp/reti-debugger/registers")
+  vim.fn.system("mkfifo /tmp/reti-debugger/registers_rel")
   vim.fn.system("mkfifo /tmp/reti-debugger/eprom")
   vim.fn.system("mkfifo /tmp/reti-debugger/uart")
   vim.fn.system("mkfifo /tmp/reti-debugger/sram")
 end
 
-function setup_options()
-  vim.api.nvim_win_set_option(windows.popups.sram.winid, "scrolloff", 999)
-end
-
--- functiont that starts a asynchronous python script in background
-function start_interpreter()
+local function start_interpreter()
   vim.fn.jobstart(
-    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/run/gcd.reti -S",
+    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/run/gcd.reti -S -D 200",
     {
       on_exit = function()
         M.job_counter = M.job_counter - 1
@@ -50,8 +53,15 @@ function start_interpreter()
       end
     })
 
-  M.job_counter = M.job_counter + 1
+  Job_Counter = Job_Counter + 1
 end
+
+local function setup_options()
+  vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrolloff", 999)
+end
+
+-- functiont that starts a asynchronous python script in background
+
 
 function M.setup(opts)
   opts = vim.tbl_deep_extend("keep", opts, config)

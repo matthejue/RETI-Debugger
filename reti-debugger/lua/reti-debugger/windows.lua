@@ -30,6 +30,15 @@ M.popups.registers = Popup(vim.tbl_deep_extend("force", popup_options,
       }
     }
   }))
+M.popups.registers_rel = Popup(vim.tbl_deep_extend("force", popup_options,
+  {
+    enter = true,
+    border = {
+      text = {
+        top = "Registers Relative"
+      }
+    }
+  }))
 M.popups.eprom = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
@@ -46,11 +55,11 @@ M.popups.uart = Popup(vim.tbl_deep_extend("keep", popup_options,
       }
     }
   }))
-M.popups.sram = Popup(vim.tbl_deep_extend("keep", popup_options,
+M.popups.sram1 = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
       text = {
-        top = "SRAM"
+        top = "SRAM Section 1"
       }
     }
   }))
@@ -58,7 +67,15 @@ M.popups.sram2 = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
       text = {
-        top = "SRAM"
+        top = "SRAM Section 2"
+      }
+    }
+  }))
+M.popups.sram3 = Popup(vim.tbl_deep_extend("keep", popup_options,
+  {
+    border = {
+      text = {
+        top = "SRAM Section 3"
       }
     }
   }))
@@ -76,15 +93,23 @@ M.layout = Layout(
     },
   },
   Layout.Box({
-    Layout.Box(M.popups.registers, { size = "20%" }), -- +1
-    Layout.Box({
-        Layout.Box(M.popups.eprom, { size = "50%" }),
-        Layout.Box(M.popups.uart, { size = "52%" }), -- +2
+    Layout.Box(
+      {
+        Layout.Box(
+          {
+            Layout.Box(M.popups.registers, { size = "50%" }),
+            Layout.Box(M.popups.registers_rel, { size = "52%" })
+          },
+          { size = "37%", dir = "row" } -- +2
+        ),
+        Layout.Box(M.popups.eprom, { size = "45%" }),
+        Layout.Box(M.popups.uart, { size = "20%" }),
       },
-      { size = "27%", dir = "col" }
+      { size = "33%", dir = "col" } -- +2
     ),
-    Layout.Box(M.popups.sram, { size = "27%" }),
-    Layout.Box(M.popups.sram2, { size = "27%" }),
+    Layout.Box(M.popups.sram1, { size = "23%" }),
+    Layout.Box(M.popups.sram2, { size = "23%" }),
+    Layout.Box(M.popups.sram3, { size = "23%" }),
   }, { size = "100%", dir = "row" })
 )
 
