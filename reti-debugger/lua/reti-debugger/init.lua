@@ -58,13 +58,17 @@ local function start_interpreter()
   Job_Counter = Job_Counter + 1
 end
 
+local function setup_options()
+  vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
+end
+
 function M.setup(opts)
   opts = vim.tbl_deep_extend("keep", opts, config)
   setup_pipes()
   start_interpreter()
   keymap.set_keybindings(opts.keys)
   windows.layout:mount()
-  -- setup_options()
+  setup_options()
   actions.update()
 end
 
