@@ -48,10 +48,14 @@ function M.update()
   local uart
   local sram
 
-  ack = utils.read_from_pipe("acknowledge")
-  if ack == "end" then
-    global_vars.completed = true
-    return
+  while true do
+    ack = utils.read_from_pipe("acknowledge")
+    if ack == "ack" then
+      break
+    elseif ack == "end" then
+      global_vars.completed = true
+      return
+    end
   end
 
   registers = utils.read_from_pipe("registers")
