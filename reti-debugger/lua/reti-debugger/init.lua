@@ -22,7 +22,7 @@ local M = {}
 -- [ ] sperre damit nicht mehre Jobs vom REIT-Inerpreter gestartet werden können
 -- [ ] on winexit stop RETI-Interpreter und Command, der das Plugin stoppt
 -- [ ] Einen Comand erstellen, der das Plugin startet
--- [ ] Command um zwischen den Fenstern zu switchen
+-- [ ] Command um zwischen den Fenstern zu switchen / wechseln
 -- [ ] Command oder einfach Funtion, um einen Register Wert zu ändern
 -- [ ] Command odere einfache Funktion, um eine Speicherstelle dauerhaft zu färben
 -- [ ] Command, um scrollbind für ein Fenster zu deaktivieren
@@ -32,30 +32,27 @@ local M = {}
 -- [ ] herausfinden, wieso Compiler aufhört zu funktionieren beim ausführeh
 -- [ ] zu kompilierenden Code aus buffer nehmen
 
-Job_Counter = 0
-
 local function setup_pipes()
   vim.fn.system("mkdir /tmp/reti-debugger")
-  vim.fn.system("mkfifo /tmp/reti-debugger/command")
+  vim.fn.system("mkfifo /tmp/reti-debugger/acknowledge")
   vim.fn.system("mkfifo /tmp/reti-debugger/registers")
   vim.fn.system("mkfifo /tmp/reti-debugger/registers_rel")
   vim.fn.system("mkfifo /tmp/reti-debugger/eprom")
   vim.fn.system("mkfifo /tmp/reti-debugger/uart")
   vim.fn.system("mkfifo /tmp/reti-debugger/sram")
+  vim.fn.system("mkfifo /tmp/reti-debugger/command")
 end
 
 local function start_interpreter()
   vim.fn.jobstart(
-    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/tests/example_fib_it.reti -S -D 200",
+    -- "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/tests/example_fib_it.reti -S -D 200",
+    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/run/test.reti -S -D 200",
     {
       on_exit = function()
-        M.job_counter = M.job_counter - 1
         vim.fn.system("rm -r /tmp/reti-debugger")
         print("Interpreter terminated")
       end
     })
-
-  Job_Counter = Job_Counter + 1
 end
 
 local function setup_options()

@@ -43,9 +43,9 @@ function M.update()
   local uart
   local sram
 
-  -- test if named pipe exists
-  if Job_Counter == 0 then
-    print("No interpreter running")
+
+  ack = util.read_from_pipe("acknowledge")
+  if ack == "end" then
     return
   end
 
@@ -69,7 +69,7 @@ end
 
 function M.next()
   -- send continue command to pipe
-  util.write_to_pipe("next")
+  util.write_to_pipe("next ")
   M.update()
 end
 
