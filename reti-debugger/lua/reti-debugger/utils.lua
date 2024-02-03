@@ -47,11 +47,28 @@ function M.set_scrollbind(one_and_two, two_and_three)
   end
 end
 
--- local virtual_linenr = vim.fn.winline()
+function M.get_key(tab, val)
+  for key, value in pairs(tab) do
+    if value == val then
+      return key
+    end
+  end
+end
 
 -- ┌──────────┐
 -- │ Not used │
 -- └──────────┘
+
+-- local virtual_linenr = vim.fn.winline()
+
+-- function M.next_key(tab, val)
+--   local next_key = next(tab, get_key(tab, val))
+--   if next_key then
+--     return next_key
+--   else
+--     return next(tab, nil)
+--   end
+-- end
 
 -- local function set_buffers_modifiable()
 --   vim.api.nvim_buf_set_option(windows.popups.registers.bufnr, "modifiable", true)

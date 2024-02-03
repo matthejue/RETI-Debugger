@@ -20,6 +20,7 @@ local popup_options = {
 }
 
 M.popups = {}
+M.popups_order = {"registers", "registers_rel", "eprom", "uart", "sram1", "sram2", "sram3"}
 
 M.popups.registers = Popup(vim.tbl_deep_extend("force", popup_options,
   {

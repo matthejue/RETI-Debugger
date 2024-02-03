@@ -1,7 +1,7 @@
-local config = require("reti-debugger.config")
+local configs = require("reti-debugger.configs")
 local windows = require("reti-debugger.windows")
-local keymap = require("reti-debugger.keymap")
 local actions = require("reti-debugger.actions")
+local global_vars = require("reti-debugger.global_vars")
 
 local M = {}
 
@@ -31,7 +31,7 @@ local M = {}
 -- [ ] Nowrap einstellen
 -- [ ] herausfinden, wieso Compiler aufhört zu funktionieren beim ausführeh
 -- [ ] zu kompilierenden Code aus buffer nehmen
--- [ ] der Command, der das Plugin startet soll M.copleted wieder auf false setzen
+-- [ ] der Command, der das Plugin startet soll M.completed wieder auf false setzen
 
 local function setup_pipes()
   vim.fn.system("mkdir /tmp/reti-debugger")
@@ -45,7 +45,7 @@ local function setup_pipes()
 end
 
 local function start_interpreter()
-  vim.fn.jobstart(
+  global_vars.interpreter_id = vim.fn.jobstart(
     -- "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/tests/example_fib_it.reti -S -D 200",
     "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/run/test.reti -S -D 200",
     {
@@ -56,17 +56,31 @@ local function start_interpreter()
     })
 end
 
-local function setup_options()
+
+function set_keybindings()
+  for _, popup in pairs(windows.popups) do
+    vim.keymap.set("n", global_vars.opts.keys.next, actions.next, { buffer = popup.bufnr, silent = true })
+    vim.keymap.set("n", global_vars.opts.keys.switch_windows, actions.switch_windows, { buffer = popup.bufnr, silent = true })
+    vim.keymap.set("n", global_vars.opts.keys.quit, actions.quit, { buffer = popup.bufnr, silent = true })
+  end
+  if global_vars.opts.keys.hide then
+    vim.keymap.set("n", global_vars.opts.keys.hide, actions.hide_toggle, { silent = true, desc = "Hide RETI-Interpreter windows" })
+  end
+end
+
+local function set_options()
   vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
 end
 
 function M.setup(opts)
-  opts = vim.tbl_deep_extend("keep", opts, config)
+  global_vars.completed = false
+  global_vars.opts = vim.tbl_deep_extend("keep", opts, configs)
+
   setup_pipes()
   start_interpreter()
-  keymap.set_keybindings(opts.keys)
+  set_keybindings()
   windows.layout:mount()
-  setup_options()
+  set_options()
   actions.update()
 end
 
