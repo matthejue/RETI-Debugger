@@ -27,6 +27,28 @@ function M.split(str)
   return t
 end
 
+function M.set_no_scrollbind()
+  vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", false)
+  vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", false)
+  vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", false)
+end
+
+function M.set_scrollbind(one_and_two, two_and_three)
+  if one_and_two and two_and_three then
+    vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", true)
+    vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
+    vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", true)
+  elseif one_and_two then
+    vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", true)
+    vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
+  elseif two_and_three then
+    vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
+    vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", true)
+  end
+end
+
+-- local virtual_linenr = vim.fn.winline()
+
 -- ┌──────────┐
 -- │ Not used │
 -- └──────────┘
@@ -83,5 +105,31 @@ end
 --     vim.fn.win_gotoid(windows.popups.sram2.winid)
 --     vim.api.nvim_input("zt")
 -- end
+
+-- local function scroll_middle_window(bfline, buf_height)
+--   util.set_no_scrollbind()
+--
+--   vim.api.nvim_win_set_cursor(windows.popups.sram2.winid, { bfline + 1, 0 })
+--   vim.fn.win_gotoid(windows.popups.sram2.winid)
+--   local win2_start = vim.fn.line("w0", windows.popups.sram2.winid)
+--   local win2_end = vim.fn.line("w$", windows.popups.sram2.winid)
+--
+--   vim.api.nvim_win_set_cursor(windows.popups.sram1.winid,
+--     { win2_start - 1 >= 1 and win2_start - 1 or 1, 0 })
+--   vim.fn.win_gotoid(windows.popups.sram1.winid)
+--   -- vim.api.nvim_input("zb") -- not always working
+--   vim.cmd("normal! zb")
+--
+--   vim.api.nvim_win_set_cursor(windows.popups.sram3.winid,
+--     { win2_end + 1 <= buf_height and win2_end + 1 or buf_height, 0 })
+--   vim.fn.win_gotoid(windows.popups.sram3.winid)
+--   -- vim.api.nvim_input("zt") -- not always working
+--   vim.cmd("normal! zt")
+--
+--   -- local win1_end = vim.fn.line("w$", windows.popups.sram1.winid)
+--   -- local win3_start = vim.fn.line("w0", windows.popups.sram3.winid)
+--   util.set_scrollbind(win2_start - 1 >= 1, win2_end + 1 <= buf_height)
+-- end
+
 
 return M

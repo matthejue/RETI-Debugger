@@ -29,6 +29,7 @@ local M = {}
 -- [ ] Clock Cycles
 -- [ ] Nowrap einstellen
 -- [ ] herausfinden, wieso Compiler aufhört zu funktionieren beim ausführeh
+-- [ ] zu kompilierenden Code aus buffer nehmen
 
 Job_Counter = 0
 
@@ -44,7 +45,7 @@ end
 
 local function start_interpreter()
   vim.fn.jobstart(
-    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/run/gcd.reti -S -D 200",
+    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/tests/example_bubble_sort.reti -S -D 200",
     {
       on_exit = function()
         M.job_counter = M.job_counter - 1
@@ -59,9 +60,6 @@ end
 local function setup_options()
   vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrolloff", 999)
 end
-
--- functiont that starts a asynchronous python script in background
-
 
 function M.setup(opts)
   opts = vim.tbl_deep_extend("keep", opts, config)

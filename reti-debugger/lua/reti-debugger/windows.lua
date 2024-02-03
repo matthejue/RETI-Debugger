@@ -23,7 +23,6 @@ M.popups = {}
 
 M.popups.registers = Popup(vim.tbl_deep_extend("force", popup_options,
   {
-    enter = true,
     border = {
       text = {
         top = "Registers"
@@ -32,7 +31,6 @@ M.popups.registers = Popup(vim.tbl_deep_extend("force", popup_options,
   }))
 M.popups.registers_rel = Popup(vim.tbl_deep_extend("force", popup_options,
   {
-    enter = true,
     border = {
       text = {
         top = "Registers Relative"
@@ -41,6 +39,7 @@ M.popups.registers_rel = Popup(vim.tbl_deep_extend("force", popup_options,
   }))
 M.popups.eprom = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
+    enter = true,
     border = {
       text = {
         top = "EPROM"

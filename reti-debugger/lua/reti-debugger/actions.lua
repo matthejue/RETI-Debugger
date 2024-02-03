@@ -3,39 +3,38 @@ local util = require("reti-debugger.util")
 
 local M = {}
 
-local function scroll_windows(line, buf_height)
-  -- vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", false)
-  -- vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", false)
-  -- vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", false)
+local function scroll_middle_window(bfline, buf_height)
+  util.set_no_scrollbind()
 
-  vim.api.nvim_win_set_cursor(windows.popups.sram2.winid, { line + 1, 0 })
+  vim.api.nvim_win_set_cursor(windows.popups.sram2.winid, { bfline + 1, 0 })
   vim.fn.win_gotoid(windows.popups.sram2.winid)
-  win2_start = vim.fn.line("w0", windows.popups.sram2.winid)
-  win2_end = vim.fn.line("w$", windows.popups.sram2.winid)
+  local win2_start = vim.fn.line("w0", windows.popups.sram2.winid)
+  local win2_end = vim.fn.line("w$", windows.popups.sram2.winid)
 
   vim.api.nvim_win_set_cursor(windows.popups.sram1.winid,
     { win2_start - 1 >= 1 and win2_start - 1 or 1, 0 })
+  vim.fn.win_gotoid(windows.popups.sram1.winid)
+  -- vim.api.nvim_input("zb") -- not always working
+  vim.cmd("normal! zb")
+
   vim.api.nvim_win_set_cursor(windows.popups.sram3.winid,
     { win2_end + 1 <= buf_height and win2_end + 1 or buf_height, 0 })
-  vim.fn.win_gotoid(windows.popups.sram1.winid)
-  vim.api.nvim_input("zb")
   vim.fn.win_gotoid(windows.popups.sram3.winid)
-  vim.api.nvim_input("zt")
+  -- vim.api.nvim_input("zt") -- not always working
+  vim.cmd("normal! zt")
 
-  -- vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", true)
-  -- vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
-  -- vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", true)
-
-  -- local virtual_linenr = vim.fn.winline()
+  -- local win1_end = vim.fn.line("w$", windows.popups.sram1.winid)
+  -- local win3_start = vim.fn.line("w0", windows.popups.sram3.winid)
+  util.set_scrollbind(win2_start - 1 >= 1, win2_end + 1 <= buf_height)
 end
 
 local function autoscrolling(pc_address)
   local win_height = vim.api.nvim_win_get_height(windows.popups.sram1.winid)
   local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
-  if pc_address > 2 ^ 31 then -- sram
-    scroll_windows(pc_address - 2 ^ 31, buf_height)
-  else -- uart and eprom
-    scroll_windows(win_height + math.ceil(win_height / 2) + 1, buf_height)
+  if pc_address >= 2 ^ 31 then -- sram
+    scroll_middle_window(pc_address - 2 ^ 31, buf_height)
+  else                         -- uart and eprom
+    scroll_middle_window(win_height + math.floor(win_height / 2), buf_height)
   end
 end
 
