@@ -31,6 +31,7 @@ local M = {}
 -- [ ] Nowrap einstellen
 -- [ ] herausfinden, wieso Compiler aufhört zu funktionieren beim ausführeh
 -- [ ] zu kompilierenden Code aus buffer nehmen
+-- [ ] der Command, der das Plugin startet soll M.copleted wieder auf false setzen
 
 local function setup_pipes()
   vim.fn.system("mkdir /tmp/reti-debugger")

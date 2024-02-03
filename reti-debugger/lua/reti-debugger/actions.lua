@@ -3,6 +3,8 @@ local util = require("reti-debugger.util")
 
 local M = {}
 
+M.completed = false
+
 local function scroll_left_window(bfline, buf_height)
   util.set_no_scrollbind()
 
@@ -43,9 +45,9 @@ function M.update()
   local uart
   local sram
 
-
   ack = util.read_from_pipe("acknowledge")
   if ack == "end" then
+    M.completed = true
     return
   end
 
@@ -68,6 +70,9 @@ function M.update()
 end
 
 function M.next()
+  if M.completed then
+    return
+  end
   -- send continue command to pipe
   util.write_to_pipe("next ")
   M.update()
