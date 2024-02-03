@@ -25,6 +25,7 @@ local M = {}
 -- [ ] Command um zwischen den Fenstern zu switchen
 -- [ ] Command oder einfach Funtion, um einen Register Wert zu ändern
 -- [ ] Command odere einfache Funktion, um eine Speicherstelle dauerhaft zu färben
+-- [ ] Command, um scrollbind für ein Fenster zu deaktivieren
 -- [ ] Sobald der RETI-Interpreter fertig ist muss er das mitteilen, damit das Plugin sicher exiten kann
 -- [ ] Clock Cycles
 -- [ ] Nowrap einstellen
@@ -45,7 +46,7 @@ end
 
 local function start_interpreter()
   vim.fn.jobstart(
-    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/tests/example_bubble_sort.reti -S -D 200",
+    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/tests/example_fib_it.reti -S -D 200",
     {
       on_exit = function()
         M.job_counter = M.job_counter - 1
@@ -57,17 +58,13 @@ local function start_interpreter()
   Job_Counter = Job_Counter + 1
 end
 
-local function setup_options()
-  vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrolloff", 999)
-end
-
 function M.setup(opts)
   opts = vim.tbl_deep_extend("keep", opts, config)
   setup_pipes()
   start_interpreter()
   keymap.set_keybindings(opts.keys)
   windows.layout:mount()
-  setup_options()
+  -- setup_options()
   actions.update()
 end
 
