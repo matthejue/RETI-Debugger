@@ -47,6 +47,7 @@ function M.update()
   local eprom
   local uart
   local sram
+  local ack
 
   while true do
     ack = utils.read_from_pipe("acknowledge")

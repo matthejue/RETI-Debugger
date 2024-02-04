@@ -2,7 +2,7 @@ local default_options = {
   keys = {
     next = "n",
     switch_windows = "<tab>",
-    -- hide = "<leader>ph",
+    hide = "<leader>ph",
     quit = "q"
   }
 }

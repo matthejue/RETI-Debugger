@@ -34,6 +34,10 @@ local M = {}
 -- [ ] der Command, der das Plugin startet soll M.completed wieder auf false setzen
 -- [ ] cursor, cursorline usw. unsichtbar machen
 -- [ ] aus buffer nehmen
+-- [ ] option to also take global keybindings
+-- [ ] be also able to switch windows in backward direction
+-- [ ] schauen was es mit dieser out Datei auf sich hat
+-- [ ] ColorManager fixen für stdin
 
 local function setup_pipes()
   vim.fn.system("mkdir /tmp/reti-debugger")
@@ -47,15 +51,18 @@ local function setup_pipes()
 end
 
 local function start_interpreter()
+  local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+
   global_vars.interpreter_id = vim.fn.jobstart(
-  -- "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/tests/example_fib_it.reti -S -D 200",
-    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py /home/areo/Documents/Studium/PicoC-Compiler/run/test.reti -S -D 200",
+    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py -S -E reti -D 200",
     {
       on_exit = function()
         vim.fn.system("rm -r /tmp/reti-debugger")
         print("Interpreter terminated")
-      end
+      end,
     })
+  vim.api.nvim_chan_send(global_vars.interpreter_id, bfcontent)
+  vim.fn.chanclose(global_vars.interpreter_id, "stdin")
 end
 
 local function set_options()
@@ -85,7 +92,7 @@ function M.setup(opts)
   set_commands()
 end
 
-function M.start(opts)
+function M.start()
   global_vars.completed = false
   setup_pipes()
   start_interpreter()
