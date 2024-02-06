@@ -107,8 +107,9 @@ end
 
 function M.init_buffer()
   local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+  bfcontent = bfcontent:gsub("\n", "newline")
 
-  vim.loop.write(global_vars.stdin, "LOADI ACC 1\n")
+  vim.loop.write(global_vars.stdin, bfcontent .. "\n")
   update_registers()
 end
 
