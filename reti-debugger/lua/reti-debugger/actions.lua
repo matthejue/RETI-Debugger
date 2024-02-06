@@ -41,7 +41,40 @@ local function autoscrolling(pc_address)
   end
 end
 
-function M.update()
+function M.update_registers()
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, registers)
+    assert(not err, err)
+    if registers then
+      vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, utils.split(registers))
+    end
+    vim.loop.write(global_vars.stdin, "ack")
+    vim.loop.shutdown(global_vars.stdin, function(err)
+      vim.loop.close(global_vars.handle, function()
+      end)
+    end)
+    M.update_registers_rel()
+  end))
+  -- vim.loop.shutdown(global_vars.stdout, function(err)
+  --   -- vim.loop.close(global_vars.handle, function()
+  --   -- end)
+  -- end)
+end
+
+function M.update_registers_rel()
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, registers)
+    assert(not err, err)
+    if registers then
+      vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, utils.split(registers))
+    end
+  end))
+  vim.loop.write(global_vars.stdin, "ack\n")
+  vim.loop.shutdown(global_vars.stdin, function(err)
+    vim.loop.close(global_vars.handle, function()
+    end)
+  end)
+end
+
+function M.update2()
   local registers
   local registers_rel
   local eprom
@@ -51,7 +84,9 @@ function M.update()
 
   while true do
     ack = utils.read_from_pipe("acknowledge")
-    if ack == "ack" then
+    if ack == nil then
+      return
+    elseif ack == "ack" then
       break
     elseif ack == "end" then
       global_vars.completed = true
@@ -83,7 +118,7 @@ function M.next()
   end
   -- send continue command to pipe
   utils.write_to_pipe("next ")
-  M.update()
+  M.update_registers()
 end
 
 function M.switch_windows()
@@ -112,7 +147,7 @@ end
 function M.quit()
   windows.layout:unmount()
   del_keybindings()
-  vim.fn.jobstop(global_vars.interpreter_id)
+  vim.loop.kill(global_vars.interpreter_id, "sigterm")
 end
 
 return M

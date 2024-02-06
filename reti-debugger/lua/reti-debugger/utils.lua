@@ -8,9 +8,9 @@ function M.read_from_pipe(pipe_name)
     print("Pipe /tmp/reti-debugger/" .. pipe_name .. " not found")
     return
   end
-  local line = f:read("*a")
+  local content = f:read("*a")
   f:close()
-  return line
+  return content
 end
 
 function M.write_to_pipe(command)
@@ -185,6 +185,26 @@ end
 --     -- scroll_middle_window(win_height + math.floor(win_height / 2), buf_height)
 --     scroll_left_window(math.floor(win_height / 2), buf_height)
 --   end
+-- end
+
+-- M.data = "nothing"
+-- function M.alternative_read_pipe(pipe_name)
+--   vim.loop.fs_open("/tmp/reti-debugger/" .. pipe_name, "r", 438, function(err, fd)
+--     M.data = "asdf"
+--     assert(not err, err)
+--     vim.loop.fs_fstat(fd, function(err, stat)
+--       assert(not err, err)
+--       M.data = "asdf"
+--       vim.loop.fs_read(fd, stat.size, 0, function(err, data)
+--         assert(not err, err)
+--         M.data = "asdf"
+--         vim.loop.fs_close(fd, function(err)
+--           assert(not err, err)
+--           M.data = data
+--         end)
+--       end)
+--     end)
+--   end)
 -- end
 
 return M

@@ -2,6 +2,7 @@ local configs = require("reti-debugger.configs")
 local windows = require("reti-debugger.windows")
 local actions = require("reti-debugger.actions")
 local global_vars = require("reti-debugger.global_vars")
+local utils = require("reti-debugger.utils")
 
 local M = {}
 
@@ -38,31 +39,73 @@ local M = {}
 -- [ ] be also able to switch windows in backward direction
 -- [ ] schauen was es mit dieser out Datei auf sich hat
 -- [ ] ColorManager fixen für stdin
+-- [ ] Toml reader für config file
+-- [ ] Input, Expected Outputs, Datasegment Size, Clock Cycles, #Befehle
+-- [ ] Mode, in dem in Fenster 2 und 3 Globale Statische Daten und Stack angezeigt werden
+-- [ ] Command, um scrollbind für ein Fenster zu deaktivieren
+-- [ ] Commands für Shortcuts?
+-- [ ] Rückwarks Fenster durchgehen Keybind und command
+-- [ ] Schönes Github Readme, Report anfangen
+-- [ ] Breakpoint and continue
+-- [ ] Stdin bei InPterter nicht direkt message_content option
 
-local function setup_pipes()
-  vim.fn.system("mkdir /tmp/reti-debugger")
-  vim.fn.system("mkfifo /tmp/reti-debugger/acknowledge")
-  vim.fn.system("mkfifo /tmp/reti-debugger/registers")
-  vim.fn.system("mkfifo /tmp/reti-debugger/registers_rel")
-  vim.fn.system("mkfifo /tmp/reti-debugger/eprom")
-  vim.fn.system("mkfifo /tmp/reti-debugger/uart")
-  vim.fn.system("mkfifo /tmp/reti-debugger/sram")
-  vim.fn.system("mkfifo /tmp/reti-debugger/command")
+local function set_pipes()
+  global_vars.stdin = vim.loop.new_pipe(false)
+  global_vars.stdout = vim.loop.new_pipe(false)
+  global_vars.stderr = vim.loop.new_pipe(false)
 end
 
 local function start_interpreter()
   local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
 
-  global_vars.interpreter_id = vim.fn.jobstart(
-    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py -S -E reti -D 200",
+  global_vars.handle, global_vars.interpreter_id = vim.loop.spawn(
+  -- "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py",
+    "/tmp/input.py",
+    -- "cat",
     {
-      on_exit = function()
-        vim.fn.system("rm -r /tmp/reti-debugger")
-        print("Interpreter terminated")
-      end,
-    })
-  vim.api.nvim_chan_send(global_vars.interpreter_id, bfcontent)
-  vim.fn.chanclose(global_vars.interpreter_id, "stdin")
+      -- args = { "-S", "-E", "reti", "-m" },
+      stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr
+      }
+    },
+    function(code, signal)
+      print("Interpreter terminated with exit code " .. code .. " and signal " .. signal)
+    end
+  )
+
+  vim.loop.write(global_vars.stdin, "asdf\n")
+
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
+    assert(not err, err)
+    if data then
+      vim.api.nvim_buf_set_lines(windows.popups.sram1.bufnr, 0, -1, true, utils.split(data))
+    end
+
+    vim.loop.write(global_vars.stdin, "doof\n")
+
+    vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
+      assert(not err, err)
+      if data then
+        vim.api.nvim_buf_set_lines(windows.popups.sram2.bufnr, 0, -1, true, utils.split(data))
+      end
+      M.start_interpreter2()
+    end))
+  end))
+end
+
+function M.start_interpreter2()
+  vim.loop.write(global_vars.stdin, "bloed\n")
+
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
+    assert(not err, err)
+    if data then
+      vim.api.nvim_buf_set_lines(windows.popups.sram3.bufnr, 0, -1, true, utils.split(data))
+    end
+  end))
+
+  -- vim.loop.shutdown(global_vars.stdin, function(err)
+  --   vim.loop.close(global_vars.handle, function()
+  --   end)
+  -- end)
 end
 
 local function set_options()
@@ -83,7 +126,7 @@ local function set_keybindings()
 end
 
 local function set_commands()
-  vim.api.nvim_create_user_command("StartRETIDebugger", M.start, {desc = "Start RETI-Debugger"})
+  vim.api.nvim_create_user_command("StartRETIDebugger", M.start, { desc = "Start RETI-Debugger" })
 end
 
 function M.setup(opts)
@@ -94,12 +137,12 @@ end
 
 function M.start()
   global_vars.completed = false
-  setup_pipes()
+  set_pipes()
   start_interpreter()
   windows.layout:mount()
   set_options()
   set_keybindings()
-  actions.update()
+  -- actions.update_registers()
 end
 
 return M
