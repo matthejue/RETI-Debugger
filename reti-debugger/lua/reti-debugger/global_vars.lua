@@ -12,5 +12,6 @@ M.stdin = nil
 M.stdout = nil 
 M.stderr = nil 
 M.current_popup = utils.get_key(windows.popups_order, "eprom")
+M.registeres = ""
 
 return M

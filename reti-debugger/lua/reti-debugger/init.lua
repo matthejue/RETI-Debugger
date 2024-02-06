@@ -56,56 +56,23 @@ local function set_pipes()
 end
 
 local function start_interpreter()
-  local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
-
   global_vars.handle, global_vars.interpreter_id = vim.loop.spawn(
-  -- "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py",
-    "/tmp/input.py",
+    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py",
+    -- "/tmp/input.py",
     -- "cat",
     {
-      -- args = { "-S", "-E", "reti", "-m" },
-      stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr
-      }
+      args = { "-E", "reti", "-P" },
+      stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr }
     },
     function(code, signal)
+      global_vars.completed = true
+      vim.loop.shutdown(global_vars.stdin, function(err)
+        vim.loop.close(global_vars.handle, function()
+        end)
+      end)
       print("Interpreter terminated with exit code " .. code .. " and signal " .. signal)
     end
   )
-
-  vim.loop.write(global_vars.stdin, "asdf\n")
-
-  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
-    assert(not err, err)
-    if data then
-      vim.api.nvim_buf_set_lines(windows.popups.sram1.bufnr, 0, -1, true, utils.split(data))
-    end
-
-    vim.loop.write(global_vars.stdin, "doof\n")
-
-    vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
-      assert(not err, err)
-      if data then
-        vim.api.nvim_buf_set_lines(windows.popups.sram2.bufnr, 0, -1, true, utils.split(data))
-      end
-      M.start_interpreter2()
-    end))
-  end))
-end
-
-function M.start_interpreter2()
-  vim.loop.write(global_vars.stdin, "bloed\n")
-
-  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
-    assert(not err, err)
-    if data then
-      vim.api.nvim_buf_set_lines(windows.popups.sram3.bufnr, 0, -1, true, utils.split(data))
-    end
-  end))
-
-  -- vim.loop.shutdown(global_vars.stdin, function(err)
-  --   vim.loop.close(global_vars.handle, function()
-  --   end)
-  -- end)
 end
 
 local function set_options()
@@ -139,10 +106,10 @@ function M.start()
   global_vars.completed = false
   set_pipes()
   start_interpreter()
+  actions.init_buffer()
   windows.layout:mount()
   set_options()
   set_keybindings()
-  -- actions.update_registers()
 end
 
 return M

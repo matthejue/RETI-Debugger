@@ -29,7 +29,8 @@ local function scroll_left_window(bfline, buf_height)
 end
 
 
-local function autoscrolling(pc_address)
+local function autoscrolling()
+  local pc_address = tonumber(string.match(global_vars.registers, "PC: *(%d+)"))
   local win_height = vim.api.nvim_win_get_height(windows.popups.sram1.winid)
   local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
   if pc_address >= 2 ^ 31 then -- sram
@@ -41,84 +42,86 @@ local function autoscrolling(pc_address)
   end
 end
 
-function M.update_registers()
-  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, registers)
-    assert(not err, err)
-    if registers then
-      vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, utils.split(registers))
-    end
-    vim.loop.write(global_vars.stdin, "ack")
-    vim.loop.shutdown(global_vars.stdin, function(err)
-      vim.loop.close(global_vars.handle, function()
-      end)
-    end)
-    M.update_registers_rel()
-  end))
-  -- vim.loop.shutdown(global_vars.stdout, function(err)
-  --   -- vim.loop.close(global_vars.handle, function()
-  --   -- end)
-  -- end)
-end
-
-function M.update_registers_rel()
-  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, registers)
-    assert(not err, err)
-    if registers then
-      vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, utils.split(registers))
-    end
-  end))
+local function update_sram()
   vim.loop.write(global_vars.stdin, "ack\n")
-  vim.loop.shutdown(global_vars.stdin, function(err)
-    vim.loop.close(global_vars.handle, function()
-    end)
-  end)
+
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
+    assert(not err, err)
+    if data then
+      content = utils.split(data)
+      vim.api.nvim_buf_set_lines(windows.popups.sram1.bufnr, 0, -1, true, content)
+      vim.api.nvim_buf_set_lines(windows.popups.sram2.bufnr, 0, -1, true, content)
+      vim.api.nvim_buf_set_lines(windows.popups.sram3.bufnr, 0, -1, true, content)
+      autoscrolling()
+    end
+  end))
 end
 
-function M.update2()
-  local registers
-  local registers_rel
-  local eprom
-  local uart
-  local sram
-  local ack
+local function update_uart()
+  vim.loop.write(global_vars.stdin, "ack\n")
 
-  while true do
-    ack = utils.read_from_pipe("acknowledge")
-    if ack == nil then
-      return
-    elseif ack == "ack" then
-      break
-    elseif ack == "end" then
-      global_vars.completed = true
-      return
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
+    assert(not err, err)
+    if data then
+      vim.api.nvim_buf_set_lines(windows.popups.uart.bufnr, 0, -1, true, utils.split(data))
+      update_sram()
     end
-  end
+  end))
+end
 
-  registers = utils.read_from_pipe("registers")
-  registers_rel = utils.read_from_pipe("registers_rel")
-  eprom = utils.read_from_pipe("eprom")
-  uart = utils.read_from_pipe("uart")
-  sram = utils.read_from_pipe("sram")
+local function update_eprom()
+  vim.loop.write(global_vars.stdin, "ack\n")
 
-  vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, utils.split(registers))
-  vim.api.nvim_buf_set_lines(windows.popups.registers_rel.bufnr, 0, -1, true, utils.split(registers_rel))
-  vim.api.nvim_buf_set_lines(windows.popups.eprom.bufnr, 0, -1, true, utils.split(eprom))
-  vim.api.nvim_buf_set_lines(windows.popups.uart.bufnr, 0, -1, true, utils.split(uart))
-  vim.api.nvim_buf_set_lines(windows.popups.sram1.bufnr, 0, -1, true, utils.split(sram))
-  vim.api.nvim_buf_set_lines(windows.popups.sram2.bufnr, 0, -1, true, utils.split(sram))
-  vim.api.nvim_buf_set_lines(windows.popups.sram3.bufnr, 0, -1, true, utils.split(sram))
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
+    assert(not err, err)
+    if data then
+      vim.api.nvim_buf_set_lines(windows.popups.eprom.bufnr, 0, -1, true, utils.split(data))
+      update_uart()
+    end
+  end))
+end
 
-  local pc_address = tonumber(string.match(registers, "PC: *(%d+)"))
-  autoscrolling(pc_address)
+
+local function update_registers_rel()
+  vim.loop.write(global_vars.stdin, "ack\n")
+
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
+    assert(not err, err)
+    if data then
+      vim.api.nvim_buf_set_lines(windows.popups.registers_rel.bufnr, 0, -1, true, utils.split(data))
+      update_eprom()
+    end
+  end))
+end
+
+function update_registers()
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
+    assert(not err, err)
+    if data then
+      vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, utils.split(data))
+      global_vars.registers = data
+      update_registers_rel()
+    end
+  end))
+end
+
+function M.init_buffer()
+  local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+
+  vim.loop.write(global_vars.stdin, "LOADI ACC 1\n")
+  update_registers()
+end
+
+function next_cycle()
+  vim.loop.write(global_vars.stdin, "next \n")
+  update_registers()
 end
 
 function M.next()
   if global_vars.completed then
     return
   end
-  -- send continue command to pipe
-  utils.write_to_pipe("next ")
-  M.update_registers()
+  next_cycle()
 end
 
 function M.switch_windows()
