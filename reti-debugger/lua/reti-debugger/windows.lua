@@ -22,7 +22,7 @@ local popup_options = {
 M.popups = {}
 M.popups_order = { "registers", "registers_rel", "eprom", "uart", "sram1", "sram2", "sram3" }
 
-M.popups.registers = Popup(vim.tbl_deep_extend("force", popup_options,
+M.popups.registers = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
       text = {
@@ -30,7 +30,7 @@ M.popups.registers = Popup(vim.tbl_deep_extend("force", popup_options,
       }
     }
   }))
-M.popups.registers_rel = Popup(vim.tbl_deep_extend("force", popup_options,
+M.popups.registers_rel = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
       text = {
@@ -38,7 +38,7 @@ M.popups.registers_rel = Popup(vim.tbl_deep_extend("force", popup_options,
       }
     }
   }))
-M.popups.eprom = Popup(vim.tbl_deep_extend("force", popup_options,
+M.popups.eprom = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     -- enter = true,
     border = {
