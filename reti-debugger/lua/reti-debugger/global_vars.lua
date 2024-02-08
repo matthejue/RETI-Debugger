@@ -13,15 +13,15 @@ M.stdout = nil
 M.stderr = nil
 M.current_popup = utils.get_key(windows.popups_order, "eprom")
 
-M.registeres = ""
+M.registers = ""
 M.eprom = ""
 
 M.scrolling_modes = {
   autoscrolling = 1,
-  memory_visible = 2
+  memory_focus = 2
 }
 
 -- M.scrolling_mode = M.scolling_modes.autoscrolling
-M.scrolling_mode = M.scrolling_modes.memory_visible
+M.scrolling_mode = M.scrolling_modes.memory_focus
 
 return M

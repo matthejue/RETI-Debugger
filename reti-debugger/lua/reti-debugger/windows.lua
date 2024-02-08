@@ -97,7 +97,7 @@ M.layout = Layout(
       {
         Layout.Box(
           {
-            Layout.Box(M.popups.registers, { size = "52%" }),
+            Layout.Box(M.popups.registers, { size = "52%" }), -- +2
             Layout.Box(M.popups.registers_rel, { size = "50%" })
           },
           { size = "37%", dir = "row" } -- +2

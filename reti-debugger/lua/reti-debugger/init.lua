@@ -2,6 +2,7 @@ local configs = require("reti-debugger.configs")
 local windows = require("reti-debugger.windows")
 local actions = require("reti-debugger.actions")
 local global_vars = require("reti-debugger.global_vars")
+local menu = require("reti-debugger.menu")
 
 local M = {}
 
@@ -55,10 +56,14 @@ local M = {}
 -- Funktionnen von Neovim, die Sache linewrap, language server usw.
 -- Kommunikationosprotokol zeigen, Gründe für dieses Layout (2 andere SRAM
 -- Globale Statische Daten und Stack), Scrolling Modes, Weitere Ideen? Backwards?
+-- Grund für Neovim Plugin, wollte schon immer lernen, letzten commit angeben
+-- vor Artifact Abgabe, speziel alle Änderungen am Picoc-Compiler aus den
+-- Commits aufzählen
 -- [ ] Libuv properly ausschalten
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [ ] Registers und Registers Relative muss nicht 50:50 sein
 -- [ ] Eprom ist nicht mehr initial window beim starten
+-- [ ] Was wenn man Fenster schließt
 
 local function set_pipes()
   global_vars.stdin = vim.loop.new_pipe(false)
@@ -91,12 +96,15 @@ end
 local function set_keybindings()
   for _, popup in pairs(windows.popups) do
     vim.keymap.set("n", global_vars.opts.keys.next, actions.next, { buffer = popup.bufnr, silent = true })
-    vim.keymap.set("n", global_vars.opts.keys.switch_windows, actions.switch_windows,
+    vim.keymap.set("n", global_vars.opts.keys.switch_window, actions.switch_windows,
       { buffer = popup.bufnr, silent = true })
-    vim.keymap.set("n", global_vars.opts.keys.switch_windows_backwards, function(...)
+    vim.keymap.set("n", global_vars.opts.keys.switch_window_backwards, function()
       actions.switch_windows(true)
     end, { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.quit, actions.quit, { buffer = popup.bufnr, silent = true })
+    vim.keymap.set("n", global_vars.opts.keys.switch_mode, function()
+      menu.menu:mount()
+    end, { buffer = popup.bufnr, silent = true })
   end
   if global_vars.opts.keys.hide then
     vim.keymap.set("n", global_vars.opts.keys.hide, actions.hide_toggle,
