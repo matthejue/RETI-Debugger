@@ -20,7 +20,7 @@ local popup_options = {
 }
 
 M.popups = {}
-M.popups_order = {"registers", "registers_rel", "eprom", "uart", "sram1", "sram2", "sram3"}
+M.popups_order = { "registers", "registers_rel", "eprom", "uart", "sram1", "sram2", "sram3" }
 
 M.popups.registers = Popup(vim.tbl_deep_extend("force", popup_options,
   {
@@ -38,9 +38,9 @@ M.popups.registers_rel = Popup(vim.tbl_deep_extend("force", popup_options,
       }
     }
   }))
-M.popups.eprom = Popup(vim.tbl_deep_extend("keep", popup_options,
+M.popups.eprom = Popup(vim.tbl_deep_extend("force", popup_options,
   {
-    enter = true,
+    -- enter = true,
     border = {
       text = {
         top = "EPROM"
@@ -97,8 +97,8 @@ M.layout = Layout(
       {
         Layout.Box(
           {
-            Layout.Box(M.popups.registers, { size = "50%" }),
-            Layout.Box(M.popups.registers_rel, { size = "52%" })
+            Layout.Box(M.popups.registers, { size = "52%" }),
+            Layout.Box(M.popups.registers_rel, { size = "50%" })
           },
           { size = "37%", dir = "row" } -- +2
         ),

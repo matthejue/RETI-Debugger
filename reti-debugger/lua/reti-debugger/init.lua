@@ -2,7 +2,6 @@ local configs = require("reti-debugger.configs")
 local windows = require("reti-debugger.windows")
 local actions = require("reti-debugger.actions")
 local global_vars = require("reti-debugger.global_vars")
-local utils = require("reti-debugger.utils")
 
 local M = {}
 
@@ -18,7 +17,7 @@ local M = {}
 -- [ ] .reti filetype erkennen, Treesitter parser, weitere Datentypen für ftplugin
 -- [ ] callback functions nachsehen und die sache mit vim.loop
 -- [ ] scrollbind, scb
--- [ ] make cursor invisible
+-- [ ] make cursor, cursorline usw. invisible
 -- [ ] special keybinding for buffer
 -- [ ] sperre damit nicht mehre Jobs vom REIT-Inerpreter gestartet werden können
 -- [ ] on winexit stop RETI-Interpreter und Command, der das Plugin stoppt
@@ -47,7 +46,19 @@ local M = {}
 -- [ ] Rückwarks Fenster durchgehen Keybind und command
 -- [ ] Schönes Github Readme, Report anfangen
 -- [ ] Breakpoint and continue
+-- [ ] alles korrekt beenden wegen libuv
 -- [ ] Stdin bei InPterter nicht direkt message_content option
+-- [ ] Wenn man keine RETI-Datei öffnet und andere Errors
+-- [ ] Report: libuv und luv, wie man richtig beendet, die Sache mit
+-- schedule_wrap, callback functions, nui verwenden, Fehlermeldungen (pcall und
+-- wenn eine nicht RETI-Datei geöffnet wird), vielleicht noch verwendete
+-- Funktionnen von Neovim, die Sache linewrap, language server usw.
+-- Kommunikationosprotokol zeigen, Gründe für dieses Layout (2 andere SRAM
+-- Globale Statische Daten und Stack), Scrolling Modes, Weitere Ideen? Backwards?
+-- [ ] Libuv properly ausschalten
+-- [ ] mal wegen Updatespeed von Neovim schauen
+-- [ ] Registers und Registers Relative muss nicht 50:50 sein
+-- [ ] Eprom ist nicht mehr initial window beim starten
 
 local function set_pipes()
   global_vars.stdin = vim.loop.new_pipe(false)
@@ -58,8 +69,6 @@ end
 local function start_interpreter()
   global_vars.handle, global_vars.interpreter_id = vim.loop.spawn(
     "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py",
-    -- "/tmp/input.py",
-    -- "cat",
     {
       args = { "-E", "reti", "-P" },
       stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr }
@@ -84,6 +93,9 @@ local function set_keybindings()
     vim.keymap.set("n", global_vars.opts.keys.next, actions.next, { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.switch_windows, actions.switch_windows,
       { buffer = popup.bufnr, silent = true })
+    vim.keymap.set("n", global_vars.opts.keys.switch_windows_backwards, function(...)
+      actions.switch_windows(true)
+    end, { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.quit, actions.quit, { buffer = popup.bufnr, silent = true })
   end
   if global_vars.opts.keys.hide then

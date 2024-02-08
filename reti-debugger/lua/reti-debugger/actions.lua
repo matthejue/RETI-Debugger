@@ -4,42 +4,59 @@ local global_vars = require("reti-debugger.global_vars")
 
 local M = {}
 
-local function scroll_left_window(bfline, buf_height)
+local function scroll_windows(bfline, buf_height)
   utils.set_no_scrollbind()
 
   vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { bfline + 1, 0 })
-  -- vim.fn.win_gotoid(windows.popups.sram1.winid)
   vim.api.nvim_set_current_win(windows.popups.sram1.winid)
   local win1_end = vim.fn.line("w$", windows.popups.sram1.winid)
 
   vim.api.nvim_win_set_cursor(windows.popups.sram2.winid,
     { win1_end + 1 <= buf_height and win1_end + 1 or buf_height, 0 })
-  -- vim.fn.win_gotoid(windows.popups.sram2.winid)
   vim.api.nvim_set_current_win(windows.popups.sram2.winid)
   vim.cmd("normal! zt")
   local win2_end = vim.fn.line("w$", windows.popups.sram2.winid)
 
   vim.api.nvim_win_set_cursor(windows.popups.sram3.winid,
     { win2_end + 1 <= buf_height and win2_end + 1 or buf_height, 0 })
-  -- vim.fn.win_gotoid(windows.popups.sram3.winid)
   vim.api.nvim_set_current_win(windows.popups.sram3.winid)
   vim.cmd("normal! zt")
 
   utils.set_scrollbind(win1_end + 1 <= buf_height, win2_end + 1 <= buf_height)
 end
 
-
 local function autoscrolling()
   local pc_address = tonumber(string.match(global_vars.registers, "PC: *(%d+)"))
-  local win_height = vim.api.nvim_win_get_height(windows.popups.sram1.winid)
   local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
   if pc_address >= 2 ^ 31 then -- sram
     local bfline = pc_address - 2 ^ 31
-    scroll_left_window(bfline, buf_height)
+    scroll_windows(bfline, buf_height)
   else -- uart and eprom
-    -- scroll_middle_window(win_height + math.floor(win_height / 2), buf_height)
-    scroll_left_window(math.floor(win_height / 2), buf_height)
+    local win_height = vim.api.nvim_win_get_height(windows.popups.sram1.winid)
+    scroll_windows(math.floor(win_height / 2), buf_height)
   end
+end
+
+local function memory_visible()
+  local pc_address = tonumber(string.match(global_vars.registers, "PC: *(%d+)"))
+  local start_datasegment = tonumber(string.match(global_vars.eprom, "ADDI DS (%d+)"))
+  local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
+
+  if pc_address >= 2 ^ 31 then -- sram
+    local bfline = pc_address - 2 ^ 31
+    vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { bfline + 1, 0 })
+  else -- uart and eprom
+    local win_height = vim.api.nvim_win_get_height(windows.popups.sram1.winid)
+    vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { math.floor(win_height / 2), 0 })
+  end
+
+  vim.api.nvim_win_set_cursor(windows.popups.sram2.winid, { start_datasegment + 1, 0 })
+  vim.api.nvim_set_current_win(windows.popups.sram2.winid)
+  vim.cmd("normal! zt")
+
+  vim.api.nvim_win_set_cursor(windows.popups.sram3.winid, { buf_height, 0 })
+  vim.api.nvim_set_current_win(windows.popups.sram3.winid)
+  vim.cmd("normal! zb")
 end
 
 local function update_sram()
@@ -48,11 +65,17 @@ local function update_sram()
   vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
     assert(not err, err)
     if data then
-      content = utils.split(data)
+      local content = utils.split(data)
       vim.api.nvim_buf_set_lines(windows.popups.sram1.bufnr, 0, -1, true, content)
       vim.api.nvim_buf_set_lines(windows.popups.sram2.bufnr, 0, -1, true, content)
       vim.api.nvim_buf_set_lines(windows.popups.sram3.bufnr, 0, -1, true, content)
-      autoscrolling()
+
+      -- ignore Cursor position outside buffer error because of a bug in Neovim API
+      if global_vars.scrolling_mode == global_vars.scrolling_modes.autoscrolling then
+        pcall(autoscrolling)
+      else
+        pcall(memory_visible)
+      end
     end
   end))
 end
@@ -76,6 +99,7 @@ local function update_eprom()
     assert(not err, err)
     if data then
       vim.api.nvim_buf_set_lines(windows.popups.eprom.bufnr, 0, -1, true, utils.split(data))
+      global_vars.eprom = data
       update_uart()
     end
   end))
@@ -125,9 +149,16 @@ function M.next()
   next_cycle()
 end
 
-function M.switch_windows()
-  global_vars.current_popup = global_vars.current_popup + 1 <= #windows.popups_order and global_vars.current_popup + 1 or
-      1
+function M.switch_windows(backward)
+  backward = backward or false
+
+  if backward then
+    global_vars.current_popup = global_vars.current_popup - 1 >= 1 and global_vars.current_popup - 1 or
+        #windows.popups_order
+  else
+    global_vars.current_popup = global_vars.current_popup + 1 <= #windows.popups_order and global_vars.current_popup + 1 or
+        1
+  end
   vim.api.nvim_set_current_win(windows.popups[windows.popups_order[global_vars.current_popup]].winid)
 end
 
