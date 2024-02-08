@@ -105,6 +105,11 @@ local function set_keybindings()
     vim.keymap.set("n", global_vars.opts.keys.switch_mode, function()
       menu.menu:mount()
     end, { buffer = popup.bufnr, silent = true })
+    vim.keymap.set("n", global_vars.opts.keys.refocus_memory,
+      function()
+        global_vars.first_focus_over = false
+        actions.memory_visible()
+      end, { buffer = popup.bufnr, silent = true })
   end
   if global_vars.opts.keys.hide then
     vim.keymap.set("n", global_vars.opts.keys.hide, actions.hide_toggle,
@@ -124,6 +129,7 @@ end
 
 function M.start()
   global_vars.completed = false
+  global_vars.first_focus_over = false
   set_pipes()
   start_interpreter()
   actions.init_buffer()

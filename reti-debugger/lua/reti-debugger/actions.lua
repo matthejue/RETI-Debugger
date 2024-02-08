@@ -37,7 +37,7 @@ local function autoscrolling()
   end
 end
 
-local function memory_visible()
+function M.memory_visible()
   local pc_address = tonumber(string.match(global_vars.registers, "PC: *(%d+)"))
   local start_datasegment = tonumber(string.match(global_vars.eprom, "ADDI DS (%d+)"))
   local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
@@ -50,6 +50,10 @@ local function memory_visible()
     vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { math.floor(win_height / 2), 0 })
   end
 
+  if global_vars.first_focus_over then
+    return
+  end
+
   vim.api.nvim_win_set_cursor(windows.popups.sram2.winid, { start_datasegment + 1, 0 })
   vim.api.nvim_set_current_win(windows.popups.sram2.winid)
   vim.cmd("normal! zt")
@@ -57,6 +61,8 @@ local function memory_visible()
   vim.api.nvim_win_set_cursor(windows.popups.sram3.winid, { buf_height, 0 })
   vim.api.nvim_set_current_win(windows.popups.sram3.winid)
   vim.cmd("normal! zb")
+
+  global_vars.first_focus_over = true
 end
 
 local function update_sram()
@@ -74,7 +80,7 @@ local function update_sram()
       if global_vars.scrolling_mode == global_vars.scrolling_modes.autoscrolling then
         pcall(autoscrolling)
       else
-        pcall(memory_visible)
+        pcall(M.memory_visible)
       end
     end
   end))

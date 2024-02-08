@@ -1,5 +1,4 @@
 local Menu = require("nui.menu")
-local event = require("nui.utils.autocmd").event
 local global_vars = require("reti-debugger.global_vars")
 local utils = require("reti-debugger.utils")
 
@@ -44,6 +43,7 @@ M.menu = Menu(popup_options, {
       global_vars.scrolling_mode = global_vars.scrolling_modes.autoscrolling
     else -- Memory Focus
       utils.set_no_scrollbind()
+      global_vars.first_focus_over = false
       global_vars.scrolling_mode = global_vars.scrolling_modes.memory_focus
     end
   end,
