@@ -66,17 +66,17 @@ M.popups.sram1 = Popup(vim.tbl_deep_extend("keep", popup_options,
 M.popups.sram2 = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
-      text = {
-        top = "SRAM Section 2"
-      }
+      -- text = {
+      --   top = "SRAM Section 2"
+      -- }
     }
   }))
 M.popups.sram3 = Popup(vim.tbl_deep_extend("keep", popup_options,
   {
     border = {
-      text = {
-        top = "SRAM Section 3"
-      }
+      -- text = {
+      --   top = "SRAM Section 3"
+      -- }
     }
   }))
 
@@ -102,7 +102,7 @@ M.layout = Layout(
           },
           { size = "37%", dir = "row" } -- +2
         ),
-        Layout.Box(M.popups.eprom, { size = "45%" }),
+        Layout.Box(M.popups.eprom, { size = "46%" }), -- +2
         Layout.Box(M.popups.uart, { size = "20%" }),
       },
       { size = "33%", dir = "col" } -- +2

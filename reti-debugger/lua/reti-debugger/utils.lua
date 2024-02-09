@@ -38,9 +38,33 @@ function M.get_key(tab, val)
   end
 end
 
+function M.window_titles_autoscrolling()
+  windows.popups.sram2.border:set_text(
+    "top", "SRAM Section 2", "center"
+  )
+  windows.popups.sram3.border:set_text(
+    "top", "SRAM Section 3", "center"
+  )
+end
+
+function M.window_titles_memory_focus(...)
+  windows.popups.sram2.border:set_text(
+    "top", "SRAM Start Datasegment", "center"
+  )
+  windows.popups.sram3.border:set_text(
+    "top", "SRAM End Datasegment", "center"
+  )
+end
+
 -- ┌──────────┐
 -- │ Not used │
 -- └──────────┘
+
+-- function M.reverse_table(tbl)
+--   for i = 1, math.floor(#tbl / 2) do
+--     tbl[i], tbl[#tbl - i + 1] = tbl[#tbl - i + 1], tbl[i]
+--   end
+-- end
 
 -- local virtual_linenr = vim.fn.winline()
 
@@ -206,7 +230,5 @@ end
 --   f:write(command)
 --   f:close()
 -- end
-
-
 
 return M

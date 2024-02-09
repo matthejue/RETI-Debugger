@@ -111,7 +111,6 @@ local function update_eprom()
   end))
 end
 
-
 local function update_registers_rel()
   vim.loop.write(global_vars.stdin, "ack\n")
 
@@ -124,7 +123,7 @@ local function update_registers_rel()
   end))
 end
 
-function update_registers()
+local function update_registers()
   vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
     assert(not err, err)
     if data then
@@ -143,7 +142,7 @@ function M.init_buffer()
   update_registers()
 end
 
-function next_cycle()
+local function next_cycle()
   vim.loop.write(global_vars.stdin, "next \n")
   update_registers()
 end

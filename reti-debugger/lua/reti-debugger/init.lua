@@ -3,6 +3,7 @@ local windows = require("reti-debugger.windows")
 local actions = require("reti-debugger.actions")
 local global_vars = require("reti-debugger.global_vars")
 local menu = require("reti-debugger.menu")
+local utils = require("reti-debugger.utils")
 
 local M = {}
 
@@ -55,15 +56,23 @@ local M = {}
 -- wenn eine nicht RETI-Datei geöffnet wird), vielleicht noch verwendete
 -- Funktionnen von Neovim, die Sache linewrap, language server usw.
 -- Kommunikationosprotokol zeigen, Gründe für dieses Layout (2 andere SRAM
--- Globale Statische Daten und Stack), Scrolling Modes, Weitere Ideen? Backwards?
--- Grund für Neovim Plugin, wollte schon immer lernen, letzten commit angeben
--- vor Artifact Abgabe, speziel alle Änderungen am Picoc-Compiler aus den
--- Commits aufzählen
+-- Globale Statische Daten und Stack), Scrolling Modes, Weitere Ideen?
+-- Backwards? Grund für Neovim Plugin, wollte schon immer lernen, letzten
+-- commit angeben vor Artifact Abgabe, speziel alle Änderungen am
+-- Picoc-Compiler aus den Commits aufzählen, die verschiedenen Modes erklären,
+-- wieso PicocCompiler, davor billiger Trick, kleine Details, wie das sich
+-- Überschriften ändern
 -- [ ] Libuv properly ausschalten
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [ ] Registers und Registers Relative muss nicht 50:50 sein
 -- [ ] Eprom ist nicht mehr initial window beim starten
 -- [ ] Was wenn man Fenster schließt
+
+
+local function set_state()
+  global_vars.completed = false
+  global_vars.first_focus_over = false
+end
 
 local function set_pipes()
   global_vars.stdin = vim.loop.new_pipe(false)
@@ -89,19 +98,27 @@ local function start_interpreter()
   )
 end
 
-local function set_options()
+local function set_window_options()
   vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
+
+  if global_vars.scrolling_mode == global_vars.scrolling_modes.autoscrolling then
+    utils.window_titles_autoscrolling()
+  else
+    utils.window_titles_memory_focus()
+  end
 end
 
 local function set_keybindings()
   for _, popup in pairs(windows.popups) do
-    vim.keymap.set("n", global_vars.opts.keys.next, actions.next, { buffer = popup.bufnr, silent = true })
+    vim.keymap.set("n", global_vars.opts.keys.next, actions.next,
+      { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.switch_window, actions.switch_windows,
       { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.switch_window_backwards, function()
       actions.switch_windows(true)
     end, { buffer = popup.bufnr, silent = true })
-    vim.keymap.set("n", global_vars.opts.keys.quit, actions.quit, { buffer = popup.bufnr, silent = true })
+    vim.keymap.set("n", global_vars.opts.keys.quit, actions.quit,
+      { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.switch_mode, function()
       menu.menu:mount()
     end, { buffer = popup.bufnr, silent = true })
@@ -118,7 +135,8 @@ local function set_keybindings()
 end
 
 local function set_commands()
-  vim.api.nvim_create_user_command("StartRETIDebugger", M.start, { desc = "Start RETI-Debugger" })
+  vim.api.nvim_create_user_command("StartRETIDebugger", M.start,
+    { desc = "Start RETI-Debugger" })
 end
 
 function M.setup(opts)
@@ -128,13 +146,12 @@ function M.setup(opts)
 end
 
 function M.start()
-  global_vars.completed = false
-  global_vars.first_focus_over = false
+  set_state()
   set_pipes()
   start_interpreter()
   actions.init_buffer()
   windows.layout:mount()
-  set_options()
+  set_window_options()
   set_keybindings()
 end
 

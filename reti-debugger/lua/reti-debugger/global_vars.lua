@@ -20,8 +20,6 @@ M.scrolling_modes = {
   autoscrolling = 1,
   memory_focus = 2
 }
-
--- M.scrolling_mode = M.scolling_modes.autoscrolling
 M.scrolling_mode = M.scrolling_modes.memory_focus
 
 M.first_focus_over = false
