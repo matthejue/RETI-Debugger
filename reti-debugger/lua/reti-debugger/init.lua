@@ -8,49 +8,45 @@ local utils = require("reti-debugger.utils")
 local M = {}
 
 -- TODO:
--- [ ] VimLeave autocommand remove pipe
--- [ ] autocommand that executes next update in certain time intervalls in asynchronous
--- [ ] actually register, eprom, uart etc. übergeben
--- [ ] setup funtion erstellen mit autocmmands und keybindings festlegen
--- [ ] while True entfernen um read_from_pipe
--- [ ] irgendwie dafür sorgen, dass nicht mehr als RETIInterpreter Job laufen kann
--- [ ] RETIInterpreter irgendwie starten am besten mit command
--- [ ] SigTerm an RETIInterpreter weiterleiten
--- [ ] .reti filetype erkennen, Treesitter parser, weitere Datentypen für ftplugin
--- [ ] callback functions nachsehen und die sache mit vim.loop
--- [ ] scrollbind, scb
--- [ ] make cursor, cursorline usw. invisible
--- [ ] special keybinding for buffer
--- [ ] sperre damit nicht mehre Jobs vom REIT-Inerpreter gestartet werden können
--- [ ] on winexit stop RETI-Interpreter und Command, der das Plugin stoppt
--- [ ] Einen Comand erstellen, der das Plugin startet
--- [ ] Command um zwischen den Fenstern zu switchen / wechseln
--- [ ] Command oder einfach Funtion, um einen Register Wert zu ändern
--- [ ] Command odere einfache Funktion, um eine Speicherstelle dauerhaft zu färben
--- [ ] Command, um scrollbind für ein Fenster zu deaktivieren
--- [ ] Sobald der RETI-Interpreter fertig ist muss er das mitteilen, damit das Plugin sicher exiten kann
--- [ ] Clock Cycles
--- [ ] Nowrap einstellen
--- [ ] herausfinden, wieso Compiler aufhört zu funktionieren beim ausführeh
--- [ ] zu kompilierenden Code aus buffer nehmen
--- [ ] der Command, der das Plugin startet soll M.completed wieder auf false setzen
--- [ ] cursor, cursorline usw. unsichtbar machen
--- [ ] aus buffer nehmen
--- [ ] option to also take global keybindings
--- [ ] be also able to switch windows in backward direction
--- [ ] schauen was es mit dieser out Datei auf sich hat
--- [ ] ColorManager fixen für stdin
--- [ ] Toml reader für config file
--- [ ] Input, Expected Outputs, Datasegment Size, Clock Cycles, #Befehle
--- [ ] Mode, in dem in Fenster 2 und 3 Globale Statische Daten und Stack angezeigt werden
--- [ ] Command, um scrollbind für ein Fenster zu deaktivieren
--- [ ] Commands für Shortcuts?
--- [ ] Rückwarks Fenster durchgehen Keybind und command
+-- [?] autocommand that executes next update in certain time intervalls in asynchronous
+-- [x] actually register, eprom, uart etc. übergeben
+-- [x] setup funtion erstellen mit commands und keybindings festlegen
+-- [?] irgendwie dafür sorgen, dass nicht mehr als ein RETIInterpreter Job laufen kann
+-- [x] RETIInterpreter irgendwie starten am besten mit command
+-- [?] SigTerm an RETIInterpreter weiterleiten
+-- [?] .reti filetype erkennen, Treesitter parser, weitere Datentypen für ftplugin
+-- [x] callback functions nachsehen und die sache mit vim.loop
+-- [x] scrollbind, scb
+-- [T] make cursor, cursorline usw. invisible
+-- [x] special keybinding for buffer
+-- [ ] on winexit stop RETI-Interpreter und Command, der das Plugin stoppt.  VimLeave oder WinClose autocommands
+-- [x] Einen Comand erstellen, der das Plugin startet
+-- [x] Command um zwischen den Fenstern zu switchen / wechseln
+-- [T] Command oder einfach Funtion, um einen Register Wert zu ändern, set
+-- [T] Command odere einfache Funktion, um eine Speicherstelle dauerhaft zu färben
+-- [?] Command, um scrollbind für ein Fenster zu deaktivieren
+-- [x] Sobald der RETI-Interpreter fertig ist muss er das mitteilen, damit das Plugin sicher exiten kann
+-- [?] Clock Cycles
+-- [?] Nowrap einstellen
+-- [x] herausfinden, wieso Compiler aufhört zu funktionieren beim ausführen
+-- [x] zu kompilierenden Code aus buffer nehmen
+-- [x] der Command, der das Plugin startet soll M.completed wieder auf false setzen
+-- [?] cursor, cursorline usw. unsichtbar machen
+-- [?] option to also take global keybindings
+-- [x] be also able to switch windows in backward direction
+-- [x] schauen was es mit dieser out Datei auf sich hat
+-- [x] ColorManager fixen für stdin
+-- [?] Toml reader für config file
+-- [?] Input, Expected Outputs, Datasegment Size, Clock Cycles, #Befehle
+-- [x] Mode, in dem in Fenster 2 und 3 Globale Statische Daten und Stack angezeigt werden
+-- [?] Command, um scrollbind für ein Fenster zu deaktivieren
+-- [?] Commands für Shortcuts?
+-- [x] Rückwarks Fenster durchgehen Keybind und command
 -- [ ] Schönes Github Readme, Report anfangen
--- [ ] Breakpoint and continue
+-- [?] Breakpoint and continue
 -- [ ] alles korrekt beenden wegen libuv
--- [ ] Stdin bei InPterter nicht direkt message_content option
--- [ ] Wenn man keine RETI-Datei öffnet und andere Errors
+-- [x] Stdin bei InPterter nicht direkt message_content option
+-- [T] Wenn man keine RETI-Datei öffnet und andere Errors
 -- [ ] Report: libuv und luv, wie man richtig beendet, die Sache mit
 -- schedule_wrap, callback functions, nui verwenden, Fehlermeldungen (pcall und
 -- wenn eine nicht RETI-Datei geöffnet wird), vielleicht noch verwendete
@@ -61,12 +57,18 @@ local M = {}
 -- commit angeben vor Artifact Abgabe, speziel alle Änderungen am
 -- Picoc-Compiler aus den Commits aufzählen, die verschiedenen Modes erklären,
 -- wieso PicocCompiler, davor billiger Trick, kleine Details, wie das sich
--- Überschriften ändern
--- [ ] Libuv properly ausschalten
+-- Überschriften ändern, Scratchbuffer erwähnen, damit nicht nervig beim exiten
+-- und bei Übergabe newlines entfernen für input() von Python, Übertragungsende
+-- über newline, global und buffer only commands, wie Zeiger zustandekommen,
+-- Datensegmentstart und Ende werden aus EPROM rausgelesen, PicoC-Compiler wird
+-- über Stdin Code übergeben, PicocCompiler in der Lage direkt Inputs aus
+-- Kommentaren rauszulesen
 -- [ ] mal wegen Updatespeed von Neovim schauen
--- [ ] Registers und Registers Relative muss nicht 50:50 sein
--- [ ] Eprom ist nicht mehr initial window beim starten
--- [ ] Was wenn man Fenster schließt
+-- [x] Registers und Registers Relative muss nicht 50:50 sein
+-- [x] Eprom ist nicht mehr initial window beim starten
+-- [T] Was wenn man Fenster schließt
+-- [?] Wenn bei der Kompilierung ein input() gefunden wird, erscheint ein
+-- Eingabefenster im Plugin
 
 
 local function set_state()
