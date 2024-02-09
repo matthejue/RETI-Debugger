@@ -26,7 +26,6 @@ local M = {}
 -- [T] Command odere einfache Funktion, um eine Speicherstelle dauerhaft zu färben
 -- [?] Command, um scrollbind für ein Fenster zu deaktivieren
 -- [x] Sobald der RETI-Interpreter fertig ist muss er das mitteilen, damit das Plugin sicher exiten kann
--- [?] Clock Cycles
 -- [?] Nowrap einstellen
 -- [x] herausfinden, wieso Compiler aufhört zu funktionieren beim ausführen
 -- [x] zu kompilierenden Code aus buffer nehmen
@@ -62,14 +61,21 @@ local M = {}
 -- über newline, global und buffer only commands, wie Zeiger zustandekommen,
 -- Datensegmentstart und Ende werden aus EPROM rausgelesen, PicoC-Compiler wird
 -- über Stdin Code übergeben, PicocCompiler in der Lage direkt Inputs aus
--- Kommentaren rauszulesen
+-- Kommentaren rauszulesen, Ordnerstruktur des Projektes, Bitte nur Commits ab
+-- Projekanfang betachten beim PicoC-Compiler. PicoC-Compiler seperates Repo.
+-- Im Video erwähnen, dass man nach den Vorgaben auch Docker verwenden kann.
+-- Chain erwähnen von callback functions aufrufen. Man kann in Fenste
+-- reinschreiben und sie abspeichern, es gibt keinen Grund die Freiheit des
+-- Users einzuschränken, wird sowieso im nächsten Schritt was neues generiert.
+-- Kommunikation über Stdin und Stdout und asynchron. Bei Ordnerstruktur des
+-- PicoC-Compilers nur wichtige Dateien nennen
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
 -- [T] Was wenn man Fenster schließt
 -- [?] Wenn bei der Kompilierung ein input() gefunden wird, erscheint ein
 -- Eingabefenster im Plugin
-
+-- [ ] Das ganze mit Docker zum laufen bringen
 
 local function set_state()
   global_vars.completed = false
