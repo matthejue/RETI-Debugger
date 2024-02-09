@@ -90,7 +90,7 @@ end
 
 local function start_interpreter()
   global_vars.handle, global_vars.interpreter_id = vim.loop.spawn(
-    "/home/areo/Documents/Studium/PicoC-Compiler/src/main.py",
+    "picoc_compiler",
     {
       args = { "-E", "reti", "-P" },
       stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr }

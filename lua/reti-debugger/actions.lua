@@ -127,6 +127,9 @@ local function update_registers()
   vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
     assert(not err, err)
     if data then
+      if string.match(data, "error") then
+        return
+      end
       vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, utils.split(data))
       global_vars.registers = data
       update_registers_rel()
