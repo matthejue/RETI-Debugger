@@ -1,6 +1,6 @@
 <div align="center">
 <a href="https://github.com/freiburg-missing-semester-course/project-matthejue">
-  <img src="./doc/logo7.png" alt="Logo" height="100px">
+  <img src="./misc/logo7.png" alt="Logo" height="100px">
 </a>
 </div>
 
