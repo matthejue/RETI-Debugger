@@ -38,9 +38,9 @@ M.popups.registers_rel = Popup(vim.tbl_deep_extend("keep", popup_options,
       }
     }
   }))
-M.popups.eprom = Popup(vim.tbl_deep_extend("keep", popup_options,
+M.popups.eprom = Popup(vim.tbl_deep_extend("force", popup_options,
   {
-    -- enter = true,
+    enter = true,
     border = {
       text = {
         top = "EPROM"

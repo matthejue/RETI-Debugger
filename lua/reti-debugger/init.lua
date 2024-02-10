@@ -65,10 +65,11 @@ local M = {}
 -- Projekanfang betachten beim PicoC-Compiler. PicoC-Compiler seperates Repo.
 -- Im Video erwähnen, dass man nach den Vorgaben auch Docker verwenden kann.
 -- Chain erwähnen von callback functions aufrufen. Man kann in Fenste
--- reinschreiben und sie abspeichern, es gibt keinen Grund die Freiheit des
--- Users einzuschränken, wird sowieso im nächsten Schritt was neues generiert.
--- Kommunikation über Stdin und Stdout und asynchron. Bei Ordnerstruktur des
--- PicoC-Compilers nur wichtige Dateien nennen
+-- reinschreiben und sie abspeichern, modifiable and not readonly es gibt
+-- keinen Grund die Freiheit des Users einzuschränken, wird sowieso im nächsten
+-- Schritt was neues generiert. Kommunikation über Stdin und Stdout und
+-- asynchron. Bei Ordnerstruktur des PicoC-Compilers nur wichtige Dateien
+-- nennen
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
@@ -76,6 +77,8 @@ local M = {}
 -- [?] Wenn bei der Kompilierung ein input() gefunden wird, erscheint ein
 -- Eingabefenster im Plugin
 -- [ ] Das ganze mit Docker zum laufen bringen
+-- [ ] Die Sache mit den Events da verwenden, wenn das Main Layout da geschlossen wird
+-- [ ] Schauen, ob Errordateien nur erstellt werden wenn notwendig
 
 local function set_state()
   global_vars.completed = false
