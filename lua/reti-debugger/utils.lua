@@ -47,13 +47,25 @@ function M.window_titles_autoscrolling()
   )
 end
 
-function M.window_titles_memory_focus(...)
+function M.window_titles_memory_focus()
   windows.popups.sram2.border:set_text(
     "top", "SRAM Start Datasegment", "center"
   )
   windows.popups.sram3.border:set_text(
     "top", "SRAM End Datasegment", "center"
   )
+end
+
+function M.elements_in_range(tab, min, max)
+  local range_tab = {}
+  min = min and math.max(min, 1) or 1
+  max = max and math.min(max, #tab) or #tab
+  for i = min, max do
+    if i >= min and i <= max then
+      table.insert(range_tab, tab[i])
+    end
+  end
+  return range_tab
 end
 
 -- ┌──────────┐

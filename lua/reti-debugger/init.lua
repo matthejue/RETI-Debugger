@@ -69,16 +69,21 @@ local M = {}
 -- keinen Grund die Freiheit des Users einzuschränken, wird sowieso im nächsten
 -- Schritt was neues generiert. Kommunikation über Stdin und Stdout und
 -- asynchron. Bei Ordnerstruktur des PicoC-Compilers nur wichtige Dateien
--- nennen
+-- nennen. Was passiert wenn man Layout schließt ohne q, sonder mit :q. Die
+-- Sache mit table.unpack. Wenn man nicht nach Fehlern sucht, dann findet man
+-- auch keine.
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
 -- [T] Was wenn man Fenster schließt
--- [?] Wenn bei der Kompilierung ein input() gefunden wird, erscheint ein
+-- [?] Wenn bei der Interpretierung ein call input acc gefunden wird, erscheint ein
 -- Eingabefenster im Plugin
+-- [?] Wenn bei der Interpretierung ein call print acc gefunden wird, erscheint ein
+-- Fenster mit dem Output, dass man wegklicken kann
 -- [ ] Das ganze mit Docker zum laufen bringen
 -- [ ] Die Sache mit den Events da verwenden, wenn das Main Layout da geschlossen wird
 -- [ ] Schauen, ob Errordateien nur erstellt werden wenn notwendig
+-- [ ] Schauen, call print acc nicht ein Problem sein könnte
 
 local function set_state()
   global_vars.completed = false

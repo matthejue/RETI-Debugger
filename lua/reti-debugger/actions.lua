@@ -1,7 +1,7 @@
 local windows = require("reti-debugger.windows")
 local utils = require("reti-debugger.utils")
 local global_vars = require("reti-debugger.global_vars")
-local error = require("reti-debugger.error")
+local errors = require("reti-debugger.errors")
 local event = require("nui.utils.autocmd").event
 
 local M = {}
@@ -125,16 +125,24 @@ local function update_registers_rel()
   end))
 end
 
+local function display_error(data)
+  errors.errorwindow:mount()
+  errors.errorwindow:on(event.BufLeave, function()
+    errors.errorwindow:unmount()
+  end)
+  vim.api.nvim_buf_set_lines(errors.errorwindow.bufnr, 0, -1, false, utils.elements_in_range(utils.split(data), 2))
+  vim.keymap.set("n", global_vars.opts.keys.quit, function()
+    errors.errorwindow:unmount()
+  end ,
+    { buffer = errors.errorwindow.bufnr, silent = true })
+end
+
 local function update_registers()
   vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
     assert(not err, err)
     if data then
       if string.match(data, "Error") then
-        error.errorwindow:mount()
-        error.errorwindow:on(event.BufLeave, function()
-          error.errorwindow:unmount()
-        end)
-        vim.api.nvim_buf_set_lines(error.errorwindow.bufnr, 0, -1, false, utils.split(data))
+        display_error(data)
         return
       end
       vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, utils.split(data))
