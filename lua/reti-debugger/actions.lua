@@ -116,7 +116,7 @@ local function display_error(data)
 end
 
 local function display_output(data)
-  local val = string.match(data, "Output: (%d*)")
+  local val = string.match(data, "Output: (%-?%d*)")
   windows.output_window:mount()
   vim.api.nvim_buf_set_lines(windows.output_window.bufnr, 0, -1, false, { val })
   set_proper_keybindings_and_events(windows.output_window)

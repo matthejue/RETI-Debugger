@@ -87,20 +87,26 @@ local M = {}
 -- [?] Wenn bei der Interpretierung ein call print acc gefunden wird, erscheint ein
 -- Fenster mit dem Output, dass man wegklicken kann
 -- [ ] Das ganze mit Docker zum laufen bringen
+--   [ ] Schauen, ob es immer noch läuft
 -- [ ] Die Sache mit den Events da verwenden, wenn das Main Layout da geschlossen wird
 -- [ ] Schauen, ob Errordateien nur erstellt werden wenn notwendig
--- [ ] Schauen, call print acc nicht ein Problem sein könnte
+-- [x] Schauen, call print acc nicht ein Problem sein könnte
 -- [ ] Nicht so viel Abstand notwendig zwischen zwischen Registern und Werten
 -- [ ] Schauen, ob es wirklich keine Probleme macht, dass start_read am Ende nicht gestoppt wird
--- [ ] Wenn man keine Zahl als Input eingibt
+-- [x] Wenn man keine Zahl als Input eingibt
 -- [?] Option PicoC Programm kompilieren zu lassen und dann Buffer content zu
 -- RETI Code ausgetauscht
--- [ ] Wenn man aus dem Input Window rausgeht und next drückt...
+-- [x] Wenn man aus dem Input Window rausgeht und next drückt...
 -- [ ] RunExample Command
 -- [ ] Restart command
 -- [ ] Schauen, warum call print nicht mit negaitven Zahlen funktioniert
 -- [ ] diese nvim_feedback function auch bei autoscrolling nutzen
 -- [ ] fn.gotoid durch entsprechend api funktion ersetzen
+-- [ ] RestartRETIDebugger soll nicht möglich sein, wenn man das Plugin mit
+-- Fenstern bereits komplett geschlossen hat
+-- [ ] Problem bei ExamplePrograms nicht mehr selber Buffer
+-- [ ] RETI-Interpreter schaut nicht mehr nach .out, .in und .datasegment
+-- Dateien, sobald die -m Option gesetzt ist
 
 local function set_and_save_state()
   global_vars.bufnr_on_leaving = vim.api.nvim_get_current_buf()
@@ -130,7 +136,7 @@ local function start_interpreter()
         vim.loop.close(global_vars.handle, function()
         end)
       end)
-      -- print("Interpreter terminated with exit code " .. code .. " and signal " .. signal)
+      print("Interpreter terminated with exit code " .. code .. " and signal " .. signal)
     end
   )
 end
@@ -172,10 +178,10 @@ local function set_keybindings()
 end
 
 local function set_commands()
-  vim.api.nvim_create_user_command("StartRETIDebugger", M.start,
+  vim.api.nvim_create_user_command("StartRETIBuffer", M.start,
     { desc = "Start RETI-Debugger" })
-  vim.api.nvim_create_user_command("RunRETIExample", M.run_example,
-    { desc = "Run an example program" })
+  vim.api.nvim_create_user_command("StartRETIExample", M.run_example,
+    { desc = "Run an example program", nargs = "?" })
   vim.api.nvim_create_user_command("RestartRETIDebugger", M.restart,
     { desc = "Restart RETI-Debugger" })
 end
@@ -196,14 +202,15 @@ function M.start()
   set_keybindings()
 end
 
-function M.run_example()
+function M.run_example(tbl)
   set_and_save_state()
   set_pipes()
   start_interpreter()
   local script_path = debug.getinfo(1, "S").source:sub(2)
   local plugin_path = script_path:match("(.*)/lua/reti%-debugger/init%.lua")
   local bufnr = vim.api.nvim_create_buf(false, true)
-  vim.loop.fs_open(plugin_path .. "/examples/demo1.reti", "r", 438, function(err, fd)
+  local exampltbl = {[1] = "simple_input_output.reti", [2] = "demo2.reti"}
+  vim.loop.fs_open(plugin_path .. "/examples/" .. exampltbl[tonumber(tbl.args)], "r", 438, function(err, fd)
     assert(not err, err)
     vim.loop.fs_fstat(fd, function(err, stat)
       assert(not err, err)
