@@ -155,6 +155,11 @@ M.output_window = Popup({
   focusable = true,
   zindex = 75,
   relative = "editor",
+  position = "50%",
+  size = {
+    width = "40%",
+    height = "30%",
+  },
   border = {
     style = "single",
     text = {
@@ -165,11 +170,6 @@ M.output_window = Popup({
   buf_options = {
     modifiable = true,
     readonly = false,
-  },
-  position = "50%",
-  size = {
-    width = "40%",
-    height = "30%",
   },
 })
 
@@ -191,13 +191,27 @@ local popup_options_input = {
       top_align = "center",
     },
   },
+  buf_options = {
+    modifiable = true,
+    readonly = false,
+  },
 }
 
 M.input_window = Input(popup_options_input, {
   prompt = "> ",
   on_submit = function(val)
     vim.loop.write(global_vars.stdin, val .. "\n")
+    global_vars.completed = false
   end,
+  on_change = function(val)
+    if val == "" or val == "-" then
+      return
+    end
+    if tonumber(val) == nil then
+      local keys = vim.api.nvim_replace_termcodes('<BS>', true, false, true)
+      vim.api.nvim_feedkeys(keys, "i", false)
+    end
+  end
 })
 
 -- ┌──────┐

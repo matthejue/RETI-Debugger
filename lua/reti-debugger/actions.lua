@@ -93,33 +93,39 @@ end
 -- ┌─────────────────────────────────────────┐
 -- │ Dealing with errors, inputs and outputs │
 -- └─────────────────────────────────────────┘
+local function set_proper_keybindings_and_events(popup)
+  popup:on(event.BufLeave, function()
+    popup:unmount()
+  end)
+  vim.keymap.set("n", global_vars.opts.keys.quit, function()
+      popup:unmount()
+    end,
+    { buffer = popup.bufnr, silent = true })
+  vim.keymap.set("n", "<cr>", function()
+      popup:unmount()
+    end,
+    { buffer = popup.bufnr, silent = true })
+  vim.keymap.set("n", global_vars.opts.keys.next, "",
+    { buffer = popup.bufnr, silent = true })
+end
+
 local function display_error(data)
   windows.error_window:mount()
   vim.api.nvim_buf_set_lines(windows.error_window.bufnr, 0, -1, false, utils.elements_in_range(utils.split(data), 2))
-  windows.error_window:on(event.BufLeave, function()
-    windows.error_window:unmount()
-  end)
-  vim.keymap.set("n", global_vars.opts.keys.quit, function()
-      windows.error_window:unmount()
-    end,
-    { buffer = windows.error_window.bufnr, silent = true })
+  set_proper_keybindings_and_events(windows.error_window)
 end
 
 local function display_output(data)
   local val = string.match(data, "Output: (%d*)")
   windows.output_window:mount()
   vim.api.nvim_buf_set_lines(windows.output_window.bufnr, 0, -1, false, { val })
-  windows.output_window:on(event.BufLeave, function()
-    windows.output_window:unmount()
-  end)
-  vim.keymap.set("n", global_vars.opts.keys.quit, function()
-      windows.output_window:unmount()
-    end,
-    { buffer = windows.output_window.bufnr, silent = true })
-  vim.keymap.set("n", "<cr>", function()
-      windows.output_window:unmount()
-    end,
-    { buffer = windows.output_window.bufnr, silent = true })
+  set_proper_keybindings_and_events(windows.output_window)
+end
+
+local function ask_for_input()
+  -- it should not be possible to execute next command in a buffer oustide the input window
+  global_vars.completed = true
+  windows.input_window:mount()
 end
 
 local function check_for_previous_outputs(data)
@@ -130,7 +136,7 @@ local function check_for_previous_outputs(data)
     display_output(data)
     return utils.elements_in_range(utils.split(data), 2)
   elseif string.match(data, "Input:") then
-    windows.input_window:mount()
+    ask_for_input()
     return
   end
   return utils.split(data)

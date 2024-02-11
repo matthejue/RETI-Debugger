@@ -74,7 +74,7 @@ local M = {}
 -- und das war das Ziel, wenn man keine offenstlich dummen Eingaben macht,
 -- nicht für den dumstmöglichen Nutzer entwickelt sondern für
 -- Universitätsstudenten, wie input und output umgesetzt sind. Beispiel
--- RETI-Programm hochladen 
+-- RETI-Programm hochladen, wie input und output abgesichert sind
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
@@ -88,6 +88,14 @@ local M = {}
 -- [ ] Schauen, ob Errordateien nur erstellt werden wenn notwendig
 -- [ ] Schauen, call print acc nicht ein Problem sein könnte
 -- [ ] Nicht so viel Abstand notwendig zwischen zwischen Registern und Werten
+-- [ ] Schauen, ob es wirklich keine Probleme macht, dass start_read am Ende nicht gestoppt wird
+-- [ ] Wenn man keine Zahl als Input eingibt
+-- [?] Option PicoC Programm kompilieren zu lassen und dann Buffer content zu
+-- RETI Code ausgetauscht
+-- [ ] Wenn man aus dem Input Window rausgeht und next drückt...
+-- [ ] RunExample Command
+-- [ ] Restart command
+-- [ ] Schauen, warum call print nicht mit negaitven Zahlen funktioniert
 
 local function set_state()
   global_vars.completed = false
