@@ -2,8 +2,6 @@ local configs = require("reti-debugger.configs")
 local windows = require("reti-debugger.windows")
 local actions = require("reti-debugger.actions")
 local global_vars = require("reti-debugger.global_vars")
-local menu = require("reti-debugger.menu")
-local utils = require("reti-debugger.utils")
 
 local M = {}
 
@@ -71,7 +69,12 @@ local M = {}
 -- asynchron. Bei Ordnerstruktur des PicoC-Compilers nur wichtige Dateien
 -- nennen. Was passiert wenn man Layout schließt ohne q, sonder mit :q. Die
 -- Sache mit table.unpack. Wenn man nicht nach Fehlern sucht, dann findet man
--- auch keine.
+-- auch keine. Jeden möglichen Fehler zu vermeiden wäre zu aufwändig für ein
+-- solches Projekt. Ist in dem Zustand auf jeden Fall einsetzbar für Studenten
+-- und das war das Ziel, wenn man keine offenstlich dummen Eingaben macht,
+-- nicht für den dumstmöglichen Nutzer entwickelt sondern für
+-- Universitätsstudenten, wie input und output umgesetzt sind. Beispiel
+-- RETI-Programm hochladen 
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
@@ -84,6 +87,7 @@ local M = {}
 -- [ ] Die Sache mit den Events da verwenden, wenn das Main Layout da geschlossen wird
 -- [ ] Schauen, ob Errordateien nur erstellt werden wenn notwendig
 -- [ ] Schauen, call print acc nicht ein Problem sein könnte
+-- [ ] Nicht so viel Abstand notwendig zwischen zwischen Registern und Werten
 
 local function set_state()
   global_vars.completed = false
@@ -118,9 +122,9 @@ local function set_window_options()
   vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
 
   if global_vars.scrolling_mode == global_vars.scrolling_modes.autoscrolling then
-    utils.window_titles_autoscrolling()
+    windows.window_titles_autoscrolling()
   else
-    utils.window_titles_memory_focus()
+    windows.window_titles_memory_focus()
   end
 end
 
@@ -136,7 +140,7 @@ local function set_keybindings()
     vim.keymap.set("n", global_vars.opts.keys.quit, actions.quit,
       { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.switch_mode, function()
-      menu.menu:mount()
+      windows.windows:mount()
     end, { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.refocus_memory,
       function()

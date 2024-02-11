@@ -1,5 +1,3 @@
-local windows = require("reti-debugger.windows")
-
 local M = {}
 
 function M.split(str)
@@ -10,50 +8,12 @@ function M.split(str)
   return t
 end
 
-function M.set_no_scrollbind()
-  vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", false)
-  vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", false)
-  vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", false)
-end
-
-function M.set_scrollbind(one_and_two, two_and_three)
-  if one_and_two and two_and_three then
-    vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", true)
-    vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
-    vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", true)
-  elseif one_and_two then
-    vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", true)
-    vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
-  elseif two_and_three then
-    vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
-    vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", true)
-  end
-end
-
 function M.get_key(tab, val)
   for key, value in pairs(tab) do
     if value == val then
       return key
     end
   end
-end
-
-function M.window_titles_autoscrolling()
-  windows.popups.sram2.border:set_text(
-    "top", "SRAM Section 2", "center"
-  )
-  windows.popups.sram3.border:set_text(
-    "top", "SRAM Section 3", "center"
-  )
-end
-
-function M.window_titles_memory_focus()
-  windows.popups.sram2.border:set_text(
-    "top", "SRAM Start Datasegment", "center"
-  )
-  windows.popups.sram3.border:set_text(
-    "top", "SRAM End Datasegment", "center"
-  )
 end
 
 function M.elements_in_range(tab, min, max)

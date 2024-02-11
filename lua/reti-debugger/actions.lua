@@ -1,13 +1,35 @@
 local windows = require("reti-debugger.windows")
 local utils = require("reti-debugger.utils")
 local global_vars = require("reti-debugger.global_vars")
-local errors = require("reti-debugger.errors")
 local event = require("nui.utils.autocmd").event
 
 local M = {}
 
+-- ┌────────────────────────┐
+-- │ Scrolling and focusing │
+-- └────────────────────────┘
+local function set_no_scrollbind()
+  vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", false)
+  vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", false)
+  vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", false)
+end
+
+local function set_scrollbind(one_and_two, two_and_three)
+  if one_and_two and two_and_three then
+    vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", true)
+    vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
+    vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", true)
+  elseif one_and_two then
+    vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrollbind", true)
+    vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
+  elseif two_and_three then
+    vim.api.nvim_win_set_option(windows.popups.sram2.winid, "scrollbind", true)
+    vim.api.nvim_win_set_option(windows.popups.sram3.winid, "scrollbind", true)
+  end
+end
+
 local function scroll_windows(bfline, buf_height)
-  utils.set_no_scrollbind()
+  set_no_scrollbind()
 
   vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { bfline + 1, 0 })
   vim.api.nvim_set_current_win(windows.popups.sram1.winid)
@@ -24,7 +46,7 @@ local function scroll_windows(bfline, buf_height)
   vim.api.nvim_set_current_win(windows.popups.sram3.winid)
   vim.cmd("normal! zt")
 
-  utils.set_scrollbind(win1_end + 1 <= buf_height, win2_end + 1 <= buf_height)
+  set_scrollbind(win1_end + 1 <= buf_height, win2_end + 1 <= buf_height)
 end
 
 local function autoscrolling()
@@ -41,8 +63,6 @@ end
 
 function M.memory_visible()
   local pc_address = tonumber(string.match(global_vars.registers, "PC: *(%d+)"))
-  local start_datasegment = tonumber(string.match(global_vars.eprom, "ADDI DS (%d+)"))
-  local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
 
   if pc_address >= 2 ^ 31 then -- sram
     local bfline = pc_address - 2 ^ 31
@@ -56,6 +76,9 @@ function M.memory_visible()
     return
   end
 
+  local start_datasegment = tonumber(string.match(global_vars.eprom, "ADDI DS (%d+)"))
+  local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
+
   vim.api.nvim_win_set_cursor(windows.popups.sram2.winid, { start_datasegment + 1, 0 })
   vim.api.nvim_set_current_win(windows.popups.sram2.winid)
   vim.cmd("normal! zt")
@@ -67,6 +90,55 @@ function M.memory_visible()
   global_vars.first_focus_over = true
 end
 
+-- ┌─────────────────────────────────────────┐
+-- │ Dealing with errors, inputs and outputs │
+-- └─────────────────────────────────────────┘
+local function display_error(data)
+  windows.error_window:mount()
+  vim.api.nvim_buf_set_lines(windows.error_window.bufnr, 0, -1, false, utils.elements_in_range(utils.split(data), 2))
+  windows.error_window:on(event.BufLeave, function()
+    windows.error_window:unmount()
+  end)
+  vim.keymap.set("n", global_vars.opts.keys.quit, function()
+      windows.error_window:unmount()
+    end,
+    { buffer = windows.error_window.bufnr, silent = true })
+end
+
+local function display_output(data)
+  local val = string.match(data, "Output: (%d*)")
+  windows.output_window:mount()
+  vim.api.nvim_buf_set_lines(windows.output_window.bufnr, 0, -1, false, { val })
+  windows.output_window:on(event.BufLeave, function()
+    windows.output_window:unmount()
+  end)
+  vim.keymap.set("n", global_vars.opts.keys.quit, function()
+      windows.output_window:unmount()
+    end,
+    { buffer = windows.output_window.bufnr, silent = true })
+  vim.keymap.set("n", "<cr>", function()
+      windows.output_window:unmount()
+    end,
+    { buffer = windows.output_window.bufnr, silent = true })
+end
+
+local function check_for_previous_outputs(data)
+  if string.match(data, "Error") then
+    display_error(data)
+    return
+  elseif string.match(data, "Output:") then
+    display_output(data)
+    return utils.elements_in_range(utils.split(data), 2)
+  elseif string.match(data, "Input:") then
+    windows.input_window:mount()
+    return
+  end
+  return utils.split(data)
+end
+
+-- ┌───────────────────────────────────────────┐
+-- │ Read buffer content and acknowledge chain │
+-- └───────────────────────────────────────────┘
 local function update_sram()
   vim.loop.write(global_vars.stdin, "ack\n")
 
@@ -125,33 +197,24 @@ local function update_registers_rel()
   end))
 end
 
-local function display_error(data)
-  errors.errorwindow:mount()
-  errors.errorwindow:on(event.BufLeave, function()
-    errors.errorwindow:unmount()
-  end)
-  vim.api.nvim_buf_set_lines(errors.errorwindow.bufnr, 0, -1, false, utils.elements_in_range(utils.split(data), 2))
-  vim.keymap.set("n", global_vars.opts.keys.quit, function()
-    errors.errorwindow:unmount()
-  end ,
-    { buffer = errors.errorwindow.bufnr, silent = true })
-end
-
 local function update_registers()
   vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
     assert(not err, err)
     if data then
-      if string.match(data, "Error") then
-        display_error(data)
+      local data_table_slice = check_for_previous_outputs(data)
+      if not data_table_slice then
         return
       end
-      vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, utils.split(data))
+      vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, data_table_slice)
       global_vars.registers = data
       update_registers_rel()
     end
   end))
 end
 
+-- ┌───────────────────────┐
+-- │ Functions for keymaps │
+-- └───────────────────────┘
 function M.init_buffer()
   local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
   bfcontent = bfcontent:gsub("\n", "newline")
@@ -176,13 +239,13 @@ function M.switch_windows(backward)
   backward = backward or false
 
   if backward then
-    global_vars.current_popup = global_vars.current_popup - 1 >= 1 and global_vars.current_popup - 1 or
+    windows.current_popup = windows.current_popup - 1 >= 1 and windows.current_popup - 1 or
         #windows.popups_order
   else
-    global_vars.current_popup = global_vars.current_popup + 1 <= #windows.popups_order and global_vars.current_popup + 1 or
+    windows.current_popup = windows.current_popup + 1 <= #windows.popups_order and windows.current_popup + 1 or
         1
   end
-  vim.api.nvim_set_current_win(windows.popups[windows.popups_order[global_vars.current_popup]].winid)
+  vim.api.nvim_set_current_win(windows.popups[windows.popups_order[windows.current_popup]].winid)
 end
 
 function M.hide_toggle()
@@ -191,7 +254,7 @@ function M.hide_toggle()
     global_vars.visible = false
   else
     windows.layout:show()
-    vim.api.nvim_set_current_win(windows.popups[windows.popups_order[global_vars.current_popup]].winid)
+    vim.api.nvim_set_current_win(windows.popups[windows.popups_order[windows.current_popup]].winid)
     global_vars.visible = true
   end
 end
