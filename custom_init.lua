@@ -14,7 +14,7 @@ vim.opt.rtp:prepend(lazypath)
 
 local plugins = {
   {
-    "freiburg-missing-semester-course/project-matthejue",
+    "matthejue/RETI-Debugger",
     dependencies = { "MunifTanjim/nui.nvim" },
     config = function()
       require("reti-debugger").setup({

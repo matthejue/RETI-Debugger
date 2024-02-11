@@ -201,7 +201,7 @@ M.input_window = Input(popup_options_input, {
   prompt = "> ",
   on_submit = function(val)
     vim.loop.write(global_vars.stdin, val .. "\n")
-    global_vars.completed = false
+    global_vars.next_blocked = false
   end,
   on_change = function(val)
     if val == "" or val == "-" then

@@ -124,7 +124,7 @@ end
 
 local function ask_for_input()
   -- it should not be possible to execute next command in a buffer oustide the input window
-  global_vars.completed = true
+  global_vars.next_blocked = true
   windows.input_window:mount()
 end
 
@@ -235,7 +235,7 @@ local function next_cycle()
 end
 
 function M.next()
-  if global_vars.completed then
+  if global_vars.next_blocked then
     return
   end
   next_cycle()
@@ -272,9 +272,14 @@ local function del_keybindings()
 end
 
 function M.quit()
-  windows.layout:unmount()
-  del_keybindings()
-  vim.loop.kill(global_vars.interpreter_id, "sigterm")
+  if not global_vars.completed then
+    windows.layout:unmount()
+    del_keybindings()
+    vim.loop.kill(global_vars.interpreter_id, "sigterm")
+  else
+    windows.layout:unmount()
+    del_keybindings()
+  end
 end
 
 return M

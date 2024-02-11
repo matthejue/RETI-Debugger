@@ -2,6 +2,7 @@ local configs = require("reti-debugger.configs")
 local windows = require("reti-debugger.windows")
 local actions = require("reti-debugger.actions")
 local global_vars = require("reti-debugger.global_vars")
+local utils = require("reti-debugger.utils")
 
 local M = {}
 
@@ -74,7 +75,9 @@ local M = {}
 -- und das war das Ziel, wenn man keine offenstlich dummen Eingaben macht,
 -- nicht für den dumstmöglichen Nutzer entwickelt sondern für
 -- Universitätsstudenten, wie input und output umgesetzt sind. Beispiel
--- RETI-Programm hochladen, wie input und output abgesichert sind
+-- RETI-Programm hochladen, wie input und output abgesichert sind. Wie
+-- Ordnerstruktur von Neovim Plugins aufgebaut ist und worauf sie basiert.
+-- Nicht dafür verantwortlich, dass der PicoC-Compiler perfekt funktioniert
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
@@ -96,8 +99,13 @@ local M = {}
 -- [ ] RunExample Command
 -- [ ] Restart command
 -- [ ] Schauen, warum call print nicht mit negaitven Zahlen funktioniert
+-- [ ] diese nvim_feedback function auch bei autoscrolling nutzen
+-- [ ] fn.gotoid durch entsprechend api funktion ersetzen
 
-local function set_state()
+local function set_and_save_state()
+  global_vars.bufnr_on_leaving = vim.api.nvim_get_current_buf()
+  global_vars.winid_on_leaving = vim.api.nvim_get_current_win()
+  global_vars.next_blocked = false
   global_vars.completed = false
   global_vars.first_focus_over = false
 end
@@ -116,12 +124,13 @@ local function start_interpreter()
       stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr }
     },
     function(code, signal)
+      global_vars.next_blocked = true
       global_vars.completed = true
       vim.loop.shutdown(global_vars.stdin, function(err)
         vim.loop.close(global_vars.handle, function()
         end)
       end)
-      print("Interpreter terminated with exit code " .. code .. " and signal " .. signal)
+      -- print("Interpreter terminated with exit code " .. code .. " and signal " .. signal)
     end
   )
 end
@@ -148,7 +157,7 @@ local function set_keybindings()
     vim.keymap.set("n", global_vars.opts.keys.quit, actions.quit,
       { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.switch_mode, function()
-      windows.windows:mount()
+      windows.menu:mount()
     end, { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.refocus_memory,
       function()
@@ -165,6 +174,10 @@ end
 local function set_commands()
   vim.api.nvim_create_user_command("StartRETIDebugger", M.start,
     { desc = "Start RETI-Debugger" })
+  vim.api.nvim_create_user_command("RunRETIExample", M.run_example,
+    { desc = "Run an example program" })
+  vim.api.nvim_create_user_command("RestartRETIDebugger", M.restart,
+    { desc = "Restart RETI-Debugger" })
 end
 
 function M.setup(opts)
@@ -174,13 +187,57 @@ function M.setup(opts)
 end
 
 function M.start()
-  set_state()
+  set_and_save_state()
   set_pipes()
   start_interpreter()
   actions.init_buffer()
   windows.layout:mount()
   set_window_options()
   set_keybindings()
+end
+
+function M.run_example()
+  set_and_save_state()
+  set_pipes()
+  start_interpreter()
+  local script_path = debug.getinfo(1, "S").source:sub(2)
+  local plugin_path = script_path:match("(.*)/lua/reti%-debugger/init%.lua")
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  vim.loop.fs_open(plugin_path .. "/examples/demo1.reti", "r", 438, function(err, fd)
+    assert(not err, err)
+    vim.loop.fs_fstat(fd, function(err, stat)
+      assert(not err, err)
+      vim.loop.fs_read(fd, stat.size, 0, vim.schedule_wrap(function(err, data)
+        assert(not err, err)
+
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, utils.split(data))
+        vim.api.nvim_set_current_buf(bufnr)
+        actions.init_buffer()
+        windows.layout:mount()
+        set_window_options()
+        set_keybindings()
+
+        vim.loop.fs_close(fd, function(err)
+          assert(not err, err)
+        end)
+      end))
+    end)
+  end)
+end
+
+function M.restart()
+  actions.quit()
+  vim.api.nvim_set_current_win(global_vars.winid_on_leaving)
+  if not (global_vars.bufnr_on_leaving == vim.api.nvim_get_current_buf()) then
+    print("Can't restart, window from which code was taken doesn't have the same buffer anymore.")
+    return
+  end
+  if not vim.wait(5000, function()
+        return global_vars.completed
+      end) then
+    return
+  end
+  M.start()
 end
 
 return M
