@@ -369,9 +369,9 @@ function M.load_example(tbl)
 
 	if tbl.args == "" then
 		windows.menu_examples:mount()
-    return
+		return
 	end
-  vim.loop.async_send(global_vars.async_event)
+	vim.loop.async_send(global_vars.async_event)
 end
 
 local function run_compiler()
