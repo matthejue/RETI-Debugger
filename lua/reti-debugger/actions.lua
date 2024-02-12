@@ -282,6 +282,9 @@ function M.quit()
   end
 end
 
+-- ┌────────────────────────┐
+-- │ Functions for commands │
+-- └────────────────────────┘
 function M.load_example(tbl)
   local script_path = debug.getinfo(1, "S").source:sub(2)
   local plugin_path = script_path:match("(.*)/lua/reti%-debugger/actions%.lua")
@@ -356,6 +359,11 @@ local function run_compiler()
   vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
     assert(not err, err)
     if data then
+      if string.match(data, "Error") then
+        display_error(data)
+        return
+      end
+
       local bufnr = vim.api.nvim_create_buf(false, true)
       vim.api.nvim_set_current_buf(bufnr)
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, utils.elements_in_range(utils.split(data), 2))

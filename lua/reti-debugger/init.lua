@@ -106,7 +106,7 @@ local M = {}
 -- [ ] Problem bei ExamplePrograms nicht mehr selber Buffer
 -- [ ] RETI-Interpreter schaut nicht mehr nach .out, .in und .datasegment
 -- Dateien, sobald die -m Option gesetzt ist
--- [ ] Compile Option
+-- [x] Compile Command
 -- [ ] Mappings für neue Commands einführen
 
 local function set_and_save_state()
