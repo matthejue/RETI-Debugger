@@ -6,7 +6,7 @@ local global_vars = require("reti-debugger.global_vars")
 local M = {}
 
 -- TODO:
--- [?] autocommand that executes next update in certain time intervalls in asynchronous
+-- [x] autocommand that executes next update in certain time intervalls in asynchronous
 -- [x] actually register, eprom, uart etc. übergeben
 -- [x] setup funtion erstellen mit commands und keybindings festlegen
 -- [?] irgendwie dafür sorgen, dass nicht mehr als ein RETIInterpreter Job laufen kann
@@ -76,7 +76,9 @@ local M = {}
 -- Universitätsstudenten, wie input und output umgesetzt sind. Beispiel
 -- RETI-Programm hochladen, wie input und output abgesichert sind. Wie
 -- Ordnerstruktur von Neovim Plugins aufgebaut ist und worauf sie basiert.
--- Nicht dafür verantwortlich, dass der PicoC-Compiler perfekt funktioniert
+-- Nicht dafür verantwortlich, dass der PicoC-Compiler perfekt funktioniert.
+-- Wie Neovim Pluginmanager funktionieren die Sache mit Runtimepath. Nicht
+-- möglich den RETI-Interreter erneut zu starten.
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
@@ -215,6 +217,9 @@ function M.setup(opts)
 end
 
 function M.start()
+  if not global_vars.completed then
+    return
+  end
   set_and_save_state()
   set_pipes()
   start_interpreter()

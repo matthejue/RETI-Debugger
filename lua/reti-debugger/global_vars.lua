@@ -1,7 +1,7 @@
 local M = {}
 
-M.completed = false
-M.next_blocked = false
+M.completed = true
+M.next_blocked = true
 M.opts = {}
 M.visible = true
 M.handle = nil
