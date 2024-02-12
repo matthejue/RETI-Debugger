@@ -108,12 +108,13 @@ local M = {}
 -- Dateien, sobald die -m Option gesetzt ist
 -- [x] Compile Command
 -- [ ] Mappings für neue Commands einführen
+-- [ ] die ganzen Autocmmands on auch wieder removen
 
 local function set_and_save_state()
   global_vars.bufnr_on_leaving = vim.api.nvim_get_current_buf()
   global_vars.winid_on_leaving = vim.api.nvim_get_current_win()
-  global_vars.next_blocked = false
   global_vars.completed = false
+  global_vars.next_blocked = false
   global_vars.first_focus_over = false
 end
 
@@ -131,8 +132,8 @@ local function start_interpreter()
       stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr }
     },
     function(code, signal)
-      global_vars.next_blocked = true
       global_vars.completed = true
+      global_vars.next_blocked = true
       vim.loop.shutdown(global_vars.stdin, function(err)
         assert(not err, err)
         vim.loop.close(global_vars.handle, function()
@@ -172,6 +173,7 @@ local function set_keybindings()
         global_vars.first_focus_over = false
         actions.memory_visible()
       end, { buffer = popup.bufnr, silent = true })
+    vim.keymap.set("n", ":", "", { buffer = popup.bufnr, silent = true })
   end
   if global_vars.opts.keys.hide then
     vim.keymap.set("n", global_vars.opts.keys.hide, actions.hide_toggle,

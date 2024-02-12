@@ -1,7 +1,6 @@
 local windows = require("reti-debugger.windows")
 local utils = require("reti-debugger.utils")
 local global_vars = require("reti-debugger.global_vars")
-local event = require("nui.utils.autocmd").event
 
 local M = {}
 
@@ -94,9 +93,9 @@ end
 -- │ Dealing with errors, inputs and outputs │
 -- └─────────────────────────────────────────┘
 local function set_proper_keybindings_and_events(popup)
-  popup:on(event.BufLeave, function()
+  popup:on("BufLeave", function()
     popup:unmount()
-  end)
+  end, { once = true })
   vim.keymap.set("n", global_vars.opts.keys.quit, function()
       popup:unmount()
     end,
@@ -106,6 +105,8 @@ local function set_proper_keybindings_and_events(popup)
     end,
     { buffer = popup.bufnr, silent = true })
   vim.keymap.set("n", global_vars.opts.keys.next, "",
+    { buffer = popup.bufnr, silent = true })
+  vim.keymap.set("n", ":", "",
     { buffer = popup.bufnr, silent = true })
 end
 
@@ -123,9 +124,12 @@ local function display_output(data)
 end
 
 local function ask_for_input()
+  windows.input_window:mount()
   -- it should not be possible to execute next command in a buffer oustide the input window
   global_vars.next_blocked = true
-  windows.input_window:mount()
+  vim.keymap.set("n", ":", "", { buffer = windows.input_window.bufnr, silent = true })
+  vim.keymap.set("n", global_vars.opts.keys.quit, "",
+    { buffer = windows.input_window.bufnr, silent = true })
 end
 
 local function check_for_previous_outputs(data)
@@ -261,6 +265,7 @@ function M.hide_toggle()
   else
     windows.layout:show()
     vim.api.nvim_set_current_win(windows.popups[windows.popups_order[windows.current_popup]].winid)
+    vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
     global_vars.visible = true
   end
 end
@@ -321,6 +326,7 @@ function M.load_example(tbl)
     [25] = "simple_input_output.picoc"
   }
 
+  print(exampltbl[tonumber(tbl.args ~= "" and tbl.args or "25")] .. " choosen")
   vim.loop.fs_open(plugin_path .. "/examples/" .. exampltbl[tonumber(tbl.args ~= "" and tbl.args or "25")], "r", 438,
     function(err, fd)
       assert(not err, err)

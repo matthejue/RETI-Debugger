@@ -200,14 +200,17 @@ local popup_options_input = {
 M.input_window = Input(popup_options_input, {
   prompt = "> ",
   on_submit = function(val)
+    if val == "" then
+      val = "0"
+    end
     vim.loop.write(global_vars.stdin, val .. "\n")
     global_vars.next_blocked = false
   end,
   on_change = function(val)
-    if val == "" or val == "-" then
+    if val == "-" or val == "" then
       return
     end
-    if tonumber(val) == nil then
+    if not tonumber(val) then
       local keys = vim.api.nvim_replace_termcodes('<BS>', true, false, true)
       vim.api.nvim_feedkeys(keys, "i", false)
     end
