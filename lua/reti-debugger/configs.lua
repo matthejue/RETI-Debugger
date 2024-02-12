@@ -5,10 +5,11 @@ local default_options = {
     switch_window_backwards = "<s-tab>",
     switch_mode = "m",
     refocus_memory = "r",
-    -- hide = "<leader>ph",
+    -- load_example = "<leader>pl",
+    -- compile = "<leader>pc",
     -- start = "<leader>ps",
     -- restart = "<leader>pr",
-    -- compile = "<leader>pc",
+    -- hide = "<leader>ph",
     quit = "q"
   }
 }

@@ -21,10 +21,11 @@ local plugins = {
     config = function()
       require("reti-debugger").setup({
         keys = {
-          hide = "<leader>ph",
+          load_example = "<leader>pl",
+          compile = "<leader>pc",
           start = "<leader>ps",
           restart = "<leader>pr",
-          compile = "<leader>pc"
+          hide = "<leader>ph"
         },
       })
     end,

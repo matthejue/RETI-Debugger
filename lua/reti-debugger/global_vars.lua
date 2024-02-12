@@ -14,8 +14,8 @@ M.registers = ""
 M.eprom = ""
 
 M.scrolling_modes = {
-  autoscrolling = 1,
-  memory_focus = 2
+	autoscrolling = 1,
+	memory_focus = 2,
 }
 M.scrolling_mode = M.scrolling_modes.memory_focus
 
@@ -23,5 +23,7 @@ M.winid_on_leaving = nil
 M.bufnr_on_leaving = nil
 
 M.first_focus_over = false
+
+M.async_event = nil
 
 return M

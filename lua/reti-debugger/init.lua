@@ -111,6 +111,7 @@ local M = {}
 -- [x] Compile Command
 -- [ ] Mappings für neue Commands einführen
 -- [ ] die ganzen Autocmmands on auch wieder removen
+-- [ ] man muss Menü auch mit q und nicht nur mit esc schließen können
 
 local function set_and_save_state()
   global_vars.bufnr_on_leaving = vim.api.nvim_get_current_buf()
@@ -168,7 +169,7 @@ local function set_keybindings()
     vim.keymap.set("n", global_vars.opts.keys.quit, actions.quit,
       { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.switch_mode, function()
-      windows.menu:mount()
+      windows.menu_modes:mount()
     end, { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", global_vars.opts.keys.refocus_memory,
       function()
@@ -177,36 +178,38 @@ local function set_keybindings()
       end, { buffer = popup.bufnr, silent = true })
     vim.keymap.set("n", ":", "", { buffer = popup.bufnr, silent = true })
   end
-  if global_vars.opts.keys.hide then
-    vim.keymap.set("n", global_vars.opts.keys.hide, actions.hide_toggle,
-      { silent = true, desc = "Hide RETI-Debugger windows" })
-  end
   if global_vars.opts.keys.restart then
     vim.keymap.set("n", global_vars.opts.keys.restart, M.restart,
       { silent = true, desc = "Restart RETI-Debugger" })
   end
+  if global_vars.opts.keys.hide then
+    vim.keymap.set("n", global_vars.opts.keys.hide, actions.hide_toggle,
+      { silent = true, desc = "Hide RETI-Debugger windows" })
+  end
 end
 
 local function set_global_keybindings()
-  if global_vars.opts.keys.start then
-    vim.keymap.set("n", global_vars.opts.keys.start, M.start,
-      { silent = true, desc = "Start RETI-Debugger" })
+  if global_vars.opts.keys.load_example then
+    vim.keymap.set("n", global_vars.opts.keys.load_example, ":LoadRETIExample<cr>",
+      { silent = true, desc = "Load an example" })
   end
   if global_vars.opts.keys.compile then
     vim.keymap.set("n", global_vars.opts.keys.compile, actions.compile,
       { silent = true, desc = "Compile from PicoC to RETI" })
   end
+  if global_vars.opts.keys.start then
+    vim.keymap.set("n", global_vars.opts.keys.start, M.start,
+      { silent = true, desc = "Start RETI-Debugger" })
+  end
 end
 
 local function set_commands()
-  vim.api.nvim_create_user_command("StartRETIBuffer", M.start,
-    { desc = "Start RETI-Debugger" })
   vim.api.nvim_create_user_command("LoadRETIExample", actions.load_example,
     { desc = "Load an example program", nargs = "?" })
-  vim.api.nvim_create_user_command("RestartRETIDebugger", M.restart,
-    { desc = "Restart RETI-Debugger" })
   vim.api.nvim_create_user_command("CompilePicoCBuffer", actions.compile,
     { desc = "Compile from PicoC to RETI" })
+  vim.api.nvim_create_user_command("StartRETIBuffer", M.start,
+    { desc = "Start RETI-Debugger" })
 end
 
 function M.setup(opts)
