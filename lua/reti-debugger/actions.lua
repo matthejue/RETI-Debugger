@@ -5,6 +5,30 @@ local global_vars = require("reti-debugger.global_vars")
 local M = {}
 
 -- ┌────────────────────────┐
+-- │ Keybindings and events │
+-- └────────────────────────┘
+local function set_layout_events_and_keybindings(popup)
+	popup:on("BufLeave", function()
+		popup:unmount()
+	end, { once = true })
+
+	vim.keymap.set("n", global_vars.opts.keys.quit, function()
+		popup:unmount()
+	end, { buffer = popup.bufnr, silent = true })
+	vim.keymap.set("n", "<cr>", function()
+		popup:unmount()
+	end, { buffer = popup.bufnr, silent = true })
+	vim.keymap.set("n", "<esc>", function()
+		popup:unmount()
+	end, { buffer = popup.bufnr, silent = true })
+	vim.keymap.set("n", global_vars.opts.keys.next, "", { buffer = popup.bufnr, silent = true })
+	vim.keymap.set("n", ":", "", { buffer = popup.bufnr, silent = true })
+	vim.keymap.set("n", "q", function()
+		popup:unmount()
+	end, { buffer = popup.bufnr, silent = true })
+end
+
+-- ┌────────────────────────┐
 -- │ Scrolling and focusing │
 -- └────────────────────────┘
 local function set_no_scrollbind()
@@ -96,31 +120,18 @@ end
 -- ┌─────────────────────────────────────────┐
 -- │ Dealing with errors, inputs and outputs │
 -- └─────────────────────────────────────────┘
-local function set_proper_keybindings_and_events(popup)
-	popup:on("BufLeave", function()
-		popup:unmount()
-	end, { once = true })
-	vim.keymap.set("n", global_vars.opts.keys.quit, function()
-		popup:unmount()
-	end, { buffer = popup.bufnr, silent = true })
-	vim.keymap.set("n", "<cr>", function()
-		popup:unmount()
-	end, { buffer = popup.bufnr, silent = true })
-	vim.keymap.set("n", global_vars.opts.keys.next, "", { buffer = popup.bufnr, silent = true })
-	vim.keymap.set("n", ":", "", { buffer = popup.bufnr, silent = true })
-end
 
 local function display_error(data)
 	windows.error_window:mount()
 	vim.api.nvim_buf_set_lines(windows.error_window.bufnr, 0, -1, false, utils.elements_in_range(utils.split(data), 2))
-	set_proper_keybindings_and_events(windows.error_window)
+	set_layout_events_and_keybindings(windows.error_window)
 end
 
 local function display_output(data)
 	local val = string.match(data, "Output: (%-?%d*)")
 	windows.output_window:mount()
 	vim.api.nvim_buf_set_lines(windows.output_window.bufnr, 0, -1, false, { val })
-	set_proper_keybindings_and_events(windows.output_window)
+	set_layout_events_and_keybindings(windows.output_window)
 end
 
 local function ask_for_input()
@@ -305,6 +316,7 @@ end
 -- ┌────────────────────────┐
 -- │ Functions for commands │
 -- └────────────────────────┘
+
 function M.load_example(tbl)
 	global_vars.async_event = vim.loop.new_async(vim.schedule_wrap(function()
 		local script_path = debug.getinfo(1, "S").source:sub(2)

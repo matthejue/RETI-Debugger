@@ -244,7 +244,7 @@ end
 local keymap = {
 	focus_next = { "j", "<down>", "<tab>", "m" },
 	focus_prev = { "k", "<up>", "<s-tab>", "<s-m>" },
-	close = { "<esc>", "<c-c>" },
+	close = { "<esc>", "q" },
 	submit = { "<cr>", "<space>" },
 }
 
@@ -339,6 +339,8 @@ local lines = {}
 for _, key in pairs(M.keys) do
 	table.insert(lines, Menu.item(key, { id = M.examples[key] }))
 end
+
+popup_options_menu.border.text.top = "Choose Example"
 
 M.menu_examples = Menu(popup_options_menu, {
 	lines = lines,
