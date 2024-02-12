@@ -98,9 +98,9 @@ local M = {}
 -- [?] Option PicoC Programm kompilieren zu lassen und dann Buffer content zu
 -- RETI Code ausgetauscht
 -- [x] Wenn man aus dem Input Window rausgeht und next drückt...
--- [ ] RunExample Command
--- [ ] Restart command
--- [ ] Schauen, warum call print nicht mit negaitven Zahlen funktioniert
+-- [x] RunExample Command
+-- [x] Restart command
+-- [x] Schauen, warum call print nicht mit negaitven Zahlen funktioniert
 -- [ ] diese nvim_feedback function auch bei autoscrolling nutzen
 -- [ ] fn.gotoid durch entsprechend api funktion ersetzen
 -- [ ] RestartRETIDebugger soll nicht möglich sein, wenn man das Plugin mit
@@ -112,6 +112,9 @@ local M = {}
 -- [ ] Mappings für neue Commands einführen
 -- [ ] die ganzen Autocmmands on auch wieder removen
 -- [ ] man muss Menü auch mit q und nicht nur mit esc schließen können
+-- [ ] window layout hide nicht wenn das layout schon unmounted
+-- [ ] restart nur, wenn layout sichtbar
+-- [ ] bei LayoutToggle sollten auch output, error und input window getoggelt werden
 
 local function set_and_save_state()
 	global_vars.bufnr_on_leaving = vim.api.nvim_get_current_buf()
@@ -119,6 +122,7 @@ local function set_and_save_state()
 	global_vars.completed = false
 	global_vars.next_blocked = false
 	global_vars.first_focus_over = false
+  global_vars.visible = true
 end
 
 local function set_pipes()
@@ -181,7 +185,6 @@ local function set_keybindings()
 	-- ┌──────────────────┐
 	-- │ Error and Output │
 	-- └──────────────────┘
-
 	if global_vars.opts.keys.restart then
 		vim.keymap.set("n", global_vars.opts.keys.restart, M.restart, { silent = true, desc = "Restart RETI-Debugger" })
 	end
@@ -248,6 +251,9 @@ function M.start()
 end
 
 function M.restart()
+  if not global_vars.visible then
+    return
+  end
 	actions.quit()
 	vim.api.nvim_set_current_win(global_vars.winid_on_leaving)
 	if not (global_vars.bufnr_on_leaving == vim.api.nvim_get_current_buf()) then
