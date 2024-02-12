@@ -1,0 +1,7 @@
+// input:
+// expected:
+// datasegment:1
+
+void main() {
+  print(input());
+}

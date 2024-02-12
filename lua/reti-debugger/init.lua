@@ -2,7 +2,6 @@ local configs = require("reti-debugger.configs")
 local windows = require("reti-debugger.windows")
 local actions = require("reti-debugger.actions")
 local global_vars = require("reti-debugger.global_vars")
-local utils = require("reti-debugger.utils")
 
 local M = {}
 
@@ -107,6 +106,8 @@ local M = {}
 -- [ ] Problem bei ExamplePrograms nicht mehr selber Buffer
 -- [ ] RETI-Interpreter schaut nicht mehr nach .out, .in und .datasegment
 -- Dateien, sobald die -m Option gesetzt ist
+-- [ ] Compile Option
+-- [ ] Mappings für neue Commands einführen
 
 local function set_and_save_state()
   global_vars.bufnr_on_leaving = vim.api.nvim_get_current_buf()
@@ -133,6 +134,7 @@ local function start_interpreter()
       global_vars.next_blocked = true
       global_vars.completed = true
       vim.loop.shutdown(global_vars.stdin, function(err)
+        assert(not err, err)
         vim.loop.close(global_vars.handle, function()
         end)
       end)
@@ -180,10 +182,12 @@ end
 local function set_commands()
   vim.api.nvim_create_user_command("StartRETIBuffer", M.start,
     { desc = "Start RETI-Debugger" })
-  vim.api.nvim_create_user_command("StartRETIExample", M.run_example,
-    { desc = "Run an example program", nargs = "?" })
+  vim.api.nvim_create_user_command("LoadRETIExample", actions.load_example,
+    { desc = "Load an example program", nargs = "?" })
   vim.api.nvim_create_user_command("RestartRETIDebugger", M.restart,
     { desc = "Restart RETI-Debugger" })
+  vim.api.nvim_create_user_command("CompilePicoCBuffer", actions.compile,
+    { desc = "Compile from PicoC to RETI" })
 end
 
 function M.setup(opts)
@@ -200,36 +204,6 @@ function M.start()
   windows.layout:mount()
   set_window_options()
   set_keybindings()
-end
-
-function M.run_example(tbl)
-  set_and_save_state()
-  set_pipes()
-  start_interpreter()
-  local script_path = debug.getinfo(1, "S").source:sub(2)
-  local plugin_path = script_path:match("(.*)/lua/reti%-debugger/init%.lua")
-  local bufnr = vim.api.nvim_create_buf(false, true)
-  local exampltbl = {[1] = "simple_input_output.reti", [2] = "demo2.reti"}
-  vim.loop.fs_open(plugin_path .. "/examples/" .. exampltbl[tonumber(tbl.args)], "r", 438, function(err, fd)
-    assert(not err, err)
-    vim.loop.fs_fstat(fd, function(err, stat)
-      assert(not err, err)
-      vim.loop.fs_read(fd, stat.size, 0, vim.schedule_wrap(function(err, data)
-        assert(not err, err)
-
-        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, utils.split(data))
-        vim.api.nvim_set_current_buf(bufnr)
-        actions.init_buffer()
-        windows.layout:mount()
-        set_window_options()
-        set_keybindings()
-
-        vim.loop.fs_close(fd, function(err)
-          assert(not err, err)
-        end)
-      end))
-    end)
-  end)
 end
 
 function M.restart()

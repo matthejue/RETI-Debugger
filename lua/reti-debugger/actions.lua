@@ -282,4 +282,93 @@ function M.quit()
   end
 end
 
+function M.load_example(tbl)
+  local script_path = debug.getinfo(1, "S").source:sub(2)
+  local plugin_path = script_path:match("(.*)/lua/reti%-debugger/actions%.lua")
+  local bufnr = vim.api.nvim_create_buf(false, true)
+
+  local exampltbl = {
+    [1] = "bsearch_it.picoc",
+    [2] = "bsearch_rec.picoc",
+    [3] = "bubble_sort.picoc",
+    [4] = "exercise_from_sheets1.picoc",
+    [5] = "exercise_from_sheets2.picoc",
+    [6] = "exercise_from_sheets3.picoc",
+    [7] = "exercise_from_sheets4.picoc",
+    [8] = "exercise_from_sheets5.picoc",
+    [9] = "exercise_from_sheets6.picoc",
+    [10] = "faculty_it.picoc",
+    [11] = "faculty_rec.picoc",
+    [12] = "fib_it.picoc",
+    [13] = "fib_rec.picoc",
+    [14] = "fib_rec_efficient.picoc",
+    [15] = "gcd.picoc",
+    [16] = "log2.picoc",
+    [17] = "min_sort.picoc",
+    [18] = "pair_sort.picoc",
+    [19] = "pair_sort2.picoc",
+    [20] = "power_it.picoc",
+    [21] = "power_it_efficient.picoc",
+    [22] = "power_rec.picoc",
+    [23] = "power_rec_efficient.picoc",
+    [24] = "prime_numbers.picoc",
+    [25] = "simple_input_output.picoc"
+  }
+
+  vim.loop.fs_open(plugin_path .. "/examples/" .. exampltbl[tonumber(tbl.args ~= "" and tbl.args or "25")], "r", 438,
+    function(err, fd)
+      assert(not err, err)
+      vim.loop.fs_fstat(fd, function(err, stat)
+        assert(not err, err)
+        vim.loop.fs_read(fd, stat.size, 0, vim.schedule_wrap(function(err, data)
+          assert(not err, err)
+          vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, utils.split(data))
+          vim.api.nvim_set_current_buf(bufnr)
+          vim.loop.fs_close(fd, function(err)
+            assert(not err, err)
+          end)
+        end))
+      end)
+    end)
+end
+
+local function run_compiler()
+  global_vars.handle, global_vars.interpreter_id = vim.loop.spawn(
+    "picoc_compiler",
+    {
+      args = { "-E", "picoc", "-P", "-p", "-v" },
+      stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr }
+    },
+    function(code, signal)
+      vim.loop.shutdown(global_vars.stdin, function(err)
+        assert(not err, err)
+        vim.loop.close(global_vars.handle, function()
+        end)
+      end)
+      print("Compiler terminated with exit code " .. code .. " and signal " .. signal)
+    end
+  )
+
+  local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+  bfcontent = bfcontent:gsub("\n", "newline")
+  vim.loop.write(global_vars.stdin, bfcontent .. "\n")
+
+  vim.loop.read_start(global_vars.stdout, vim.schedule_wrap(function(err, data)
+    assert(not err, err)
+    if data then
+      local bufnr = vim.api.nvim_create_buf(false, true)
+      vim.api.nvim_set_current_buf(bufnr)
+      vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, utils.elements_in_range(utils.split(data), 2))
+      vim.loop.read_stop(global_vars.stdout)
+    end
+  end))
+end
+
+function M.compile()
+  global_vars.stdin = vim.loop.new_pipe(false)
+  global_vars.stdout = vim.loop.new_pipe(false)
+  global_vars.stderr = vim.loop.new_pipe(false)
+  run_compiler()
+end
+
 return M

@@ -1,0 +1,21 @@
+// input:3 4
+// expected:6 24
+// from the Operating Systems Lecture by Prof. Dr. Christoph Scholl
+
+int fakul(int n) {
+  int res_f; int h;
+  if (n == 1) {
+    res_f = 1;
+  } else {
+    h = fakul(n-1);
+    res_f = n * h;
+  }
+  return res_f;
+}
+
+void main() {
+  int res;
+  print(fakul(input()));
+  res = fakul(input());
+  print(res);
+}
