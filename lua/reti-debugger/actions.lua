@@ -269,6 +269,9 @@ local function del_keybindings()
   if global_vars.opts.keys.hide then
     vim.keymap.del("n", global_vars.opts.keys.hide)
   end
+  if global_vars.opts.keys.restart then
+    vim.keymap.del("n", global_vars.opts.keys.restart)
+  end
 end
 
 function M.quit()

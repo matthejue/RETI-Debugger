@@ -175,7 +175,22 @@ local function set_keybindings()
   end
   if global_vars.opts.keys.hide then
     vim.keymap.set("n", global_vars.opts.keys.hide, actions.hide_toggle,
-      { silent = true, desc = "Hide RETI-Interpreter windows" })
+      { silent = true, desc = "Hide RETI-Debugger windows" })
+  end
+  if global_vars.opts.keys.restart then
+    vim.keymap.set("n", global_vars.opts.keys.restart, M.restart,
+      { silent = true, desc = "Restart RETI-Debugger" })
+  end
+end
+
+local function set_global_keybindings()
+  if global_vars.opts.keys.start then
+    vim.keymap.set("n", global_vars.opts.keys.start, M.start,
+      { silent = true, desc = "Start RETI-Debugger" })
+  end
+  if global_vars.opts.keys.compile then
+    vim.keymap.set("n", global_vars.opts.keys.compile, actions.compile,
+      { silent = true, desc = "Compile from PicoC to RETI" })
   end
 end
 
@@ -194,6 +209,7 @@ function M.setup(opts)
   global_vars.opts = vim.tbl_deep_extend("keep", opts, configs)
 
   set_commands()
+  set_global_keybindings()
 end
 
 function M.start()

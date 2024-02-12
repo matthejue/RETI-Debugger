@@ -20,6 +20,9 @@ local plugins = {
       require("reti-debugger").setup({
         keys = {
           hide = "<leader>ph",
+          start = "<leader>ps",
+          restart = "<leader>pr",
+          compile = "<leader>pc"
         },
       })
     end,

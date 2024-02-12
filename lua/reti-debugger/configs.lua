@@ -7,8 +7,8 @@ local default_options = {
     refocus_memory = "r",
     -- hide = "<leader>ph",
     -- start = "<leader>ps",
-    -- starexample = "<leader>pe",
     -- restart = "<leader>pr",
+    -- compile = "<leader>pc",
     quit = "q"
   }
 }
