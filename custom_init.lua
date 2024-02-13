@@ -24,7 +24,6 @@ local plugins = {
           load_example = "<leader>pl",
           compile = "<leader>pc",
           start = "<leader>ps",
-          restart = "<leader>pr",
           hide = "<leader>ph"
         },
       })

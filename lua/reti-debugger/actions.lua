@@ -1,6 +1,6 @@
 local windows = require("reti-debugger.windows")
 local utils = require("reti-debugger.utils")
-local global_vars = require("reti-debugger.global_vars")
+local state = require("reti-debugger.state")
 
 local M = {}
 
@@ -10,22 +10,24 @@ local M = {}
 local function set_layout_events_and_keybindings(popup)
 	popup:on("BufLeave", function()
 		popup:unmount()
+    state.delta("popup closed")
 	end, { once = true })
 
-	vim.keymap.set("n", global_vars.opts.keys.quit, function()
+	vim.keymap.set("n", state.opts.keys.quit, function()
 		popup:unmount()
+    state.delta("popup closed")
 	end, { buffer = popup.bufnr, silent = true })
 	vim.keymap.set("n", "<cr>", function()
 		popup:unmount()
+    state.delta("popup closed")
 	end, { buffer = popup.bufnr, silent = true })
 	vim.keymap.set("n", "<esc>", function()
 		popup:unmount()
+    state.delta("popup closed")
 	end, { buffer = popup.bufnr, silent = true })
-	vim.keymap.set("n", global_vars.opts.keys.next, "", { buffer = popup.bufnr, silent = true })
+  -- else it is annoying to get an error message for failed to find pattern when suddently walking into a print call instruction
+	vim.keymap.set("n", state.opts.keys.next, "", { buffer = popup.bufnr, silent = true })
 	vim.keymap.set("n", ":", "", { buffer = popup.bufnr, silent = true })
-	vim.keymap.set("n", "q", function()
-		popup:unmount()
-	end, { buffer = popup.bufnr, silent = true })
 end
 
 -- ┌────────────────────────┐
@@ -77,7 +79,7 @@ local function scroll_windows(bfline, buf_height)
 end
 
 local function autoscrolling()
-	local pc_address = tonumber(string.match(global_vars.registers, "PC: *(%d+)"))
+	local pc_address = tonumber(string.match(state.registers, "PC: *(%d+)"))
 	local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
 	if pc_address >= 2 ^ 31 then -- sram
 		local bfline = pc_address - 2 ^ 31
@@ -89,7 +91,7 @@ local function autoscrolling()
 end
 
 function M.memory_visible()
-	local pc_address = tonumber(string.match(global_vars.registers, "PC: *(%d+)"))
+	local pc_address = tonumber(string.match(state.registers, "PC: *(%d+)"))
 
 	if pc_address >= 2 ^ 31 then -- sram
 		local bfline = pc_address - 2 ^ 31
@@ -99,11 +101,11 @@ function M.memory_visible()
 		vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { math.floor(win_height / 2), 0 })
 	end
 
-	if global_vars.first_focus_over then
+  if not state.delta2("first_focus") then
 		return
 	end
 
-	local start_datasegment = tonumber(string.match(global_vars.eprom, "ADDI DS (%d+)"))
+	local start_datasegment = tonumber(string.match(state.eprom, "ADDI DS (%d+)"))
 	local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
 
 	vim.api.nvim_win_set_cursor(windows.popups.sram2.winid, { start_datasegment + 1, 0 })
@@ -114,7 +116,7 @@ function M.memory_visible()
 	vim.api.nvim_set_current_win(windows.popups.sram3.winid)
 	vim.cmd("normal! zb")
 
-	global_vars.first_focus_over = true
+	state.first_focus_over = true
 end
 
 -- ┌─────────────────────────────────────────┐
@@ -122,24 +124,25 @@ end
 -- └─────────────────────────────────────────┘
 
 local function display_error(data)
+  state.delta("popup appears")
 	windows.error_window:mount()
 	vim.api.nvim_buf_set_lines(windows.error_window.bufnr, 0, -1, false, utils.elements_in_range(utils.split(data), 2))
 	set_layout_events_and_keybindings(windows.error_window)
 end
 
 local function display_output(data)
-	local val = string.match(data, "Output: (%-?%d*)")
+  state.delta("popup appears")
 	windows.output_window:mount()
+	local val = string.match(data, "Output: (%-?%d*)")
 	vim.api.nvim_buf_set_lines(windows.output_window.bufnr, 0, -1, false, { val })
 	set_layout_events_and_keybindings(windows.output_window)
 end
 
 local function ask_for_input()
+  state.delta("popup appears")
 	windows.input_window:mount()
 	-- it should not be possible to execute next command in a buffer oustide the input window
-	global_vars.next_blocked = true
 	vim.keymap.set("n", ":", "", { buffer = windows.input_window.bufnr, silent = true })
-	vim.keymap.set("n", global_vars.opts.keys.quit, "", { buffer = windows.input_window.bufnr, silent = true })
 end
 
 local function check_for_previous_outputs(data)
@@ -160,10 +163,10 @@ end
 -- │ Read buffer content and acknowledge chain │
 -- └───────────────────────────────────────────┘
 local function update_sram()
-	vim.loop.write(global_vars.stdin, "ack\n")
+	vim.loop.write(state.stdin, "ack\n")
 
 	vim.loop.read_start(
-		global_vars.stdout,
+		state.stdout,
 		vim.schedule_wrap(function(err, data)
 			assert(not err, err)
 			if data then
@@ -173,7 +176,7 @@ local function update_sram()
 				vim.api.nvim_buf_set_lines(windows.popups.sram3.bufnr, 0, -1, true, content)
 
 				-- ignore Cursor position outside buffer error because of a bug in Neovim API
-				if global_vars.scrolling_mode == global_vars.scrolling_modes.autoscrolling then
+				if state.scrolling_mode == state.scrolling_modes.autoscrolling then
 					pcall(autoscrolling)
 				else
 					pcall(M.memory_visible)
@@ -184,10 +187,10 @@ local function update_sram()
 end
 
 local function update_uart()
-	vim.loop.write(global_vars.stdin, "ack\n")
+	vim.loop.write(state.stdin, "ack\n")
 
 	vim.loop.read_start(
-		global_vars.stdout,
+		state.stdout,
 		vim.schedule_wrap(function(err, data)
 			assert(not err, err)
 			if data then
@@ -199,15 +202,15 @@ local function update_uart()
 end
 
 local function update_eprom()
-	vim.loop.write(global_vars.stdin, "ack\n")
+	vim.loop.write(state.stdin, "ack\n")
 
 	vim.loop.read_start(
-		global_vars.stdout,
+		state.stdout,
 		vim.schedule_wrap(function(err, data)
 			assert(not err, err)
 			if data then
 				vim.api.nvim_buf_set_lines(windows.popups.eprom.bufnr, 0, -1, true, utils.split(data))
-				global_vars.eprom = data
+				state.eprom = data
 				update_uart()
 			end
 		end)
@@ -215,10 +218,10 @@ local function update_eprom()
 end
 
 local function update_registers_rel()
-	vim.loop.write(global_vars.stdin, "ack\n")
+	vim.loop.write(state.stdin, "ack\n")
 
 	vim.loop.read_start(
-		global_vars.stdout,
+		state.stdout,
 		vim.schedule_wrap(function(err, data)
 			assert(not err, err)
 			if data then
@@ -231,7 +234,7 @@ end
 
 local function update_registers()
 	vim.loop.read_start(
-		global_vars.stdout,
+		state.stdout,
 		vim.schedule_wrap(function(err, data)
 			assert(not err, err)
 			if data then
@@ -240,7 +243,7 @@ local function update_registers()
 					return
 				end
 				vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, data_table_slice)
-				global_vars.registers = data
+				state.registers = data
 				update_registers_rel()
 			end
 		end)
@@ -254,17 +257,17 @@ function M.init_buffer()
 	local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
 	bfcontent = bfcontent:gsub("\n", "newline")
 
-	vim.loop.write(global_vars.stdin, bfcontent .. "\n")
+	vim.loop.write(state.stdin, bfcontent .. "\n")
 	update_registers()
 end
 
 local function next_cycle()
-	vim.loop.write(global_vars.stdin, "next \n")
+	vim.loop.write(state.stdin, "next \n")
 	update_registers()
 end
 
 function M.next()
-	if global_vars.next_blocked then
+	if not state.delta("next") then
 		return
 	end
 	next_cycle()
@@ -282,31 +285,29 @@ function M.switch_windows(backward)
 end
 
 function M.hide_toggle()
-	if global_vars.visible then
+	if state.delta("hide") then
 		windows.layout:hide()
-		global_vars.visible = false
-	else
+  elseif state.delta("show") then
 		windows.layout:show()
 		vim.api.nvim_set_current_win(windows.popups[windows.popups_order[windows.current_popup]].winid)
 		vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
-		global_vars.visible = true
 	end
 end
 
 local function del_keybindings()
-	if global_vars.opts.keys.hide then
-		vim.keymap.del("n", global_vars.opts.keys.hide)
-	end
-	if global_vars.opts.keys.restart then
-		vim.keymap.del("n", global_vars.opts.keys.restart)
+	if state.opts.keys.hide then
+		vim.keymap.del("n", state.opts.keys.hide)
 	end
 end
 
 function M.quit()
-	if not global_vars.completed then
+	if not state.delta("quit") then
+		return
+	end
+	if not state.interpreter_completed then
 		windows.layout:unmount()
 		del_keybindings()
-		vim.loop.kill(global_vars.interpreter_id, "sigterm")
+		vim.loop.kill(state.interpreter_id, "sigterm")
 	else
 		windows.layout:unmount()
 		del_keybindings()
@@ -318,7 +319,7 @@ end
 -- └────────────────────────┘
 
 function M.load_example(tbl)
-	global_vars.async_event = vim.loop.new_async(vim.schedule_wrap(function()
+	state.async_event = vim.loop.new_async(vim.schedule_wrap(function()
 		local script_path = debug.getinfo(1, "S").source:sub(2)
 		local plugin_path = script_path:match("(.*)/lua/reti%-debugger/actions%.lua")
 
@@ -380,30 +381,31 @@ function M.load_example(tbl)
 	end))
 
 	if tbl.args == "" then
+    state.delta("popup appears")
 		windows.menu_examples:mount()
 		return
 	end
-	vim.loop.async_send(global_vars.async_event)
+	vim.loop.async_send(state.async_event)
 end
 
 local function run_compiler()
-	global_vars.handle, global_vars.interpreter_id = vim.loop.spawn("picoc_compiler", {
+	state.handle, state.interpreter_id = vim.loop.spawn("picoc_compiler", {
 		args = { "-E", "picoc", "-P", "-p", "-v" },
-		stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr },
+		stdio = { state.stdin, state.stdout, state.stderr },
 	}, function(code, signal)
-		vim.loop.shutdown(global_vars.stdin, function(err)
+		vim.loop.shutdown(state.stdin, function(err)
 			assert(not err, err)
-			vim.loop.close(global_vars.handle, function() end)
+			vim.loop.close(state.handle, function() end)
 		end)
 		print("Compiler terminated with exit code " .. code .. " and signal " .. signal)
 	end)
 
 	local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
 	bfcontent = bfcontent:gsub("\n", "newline")
-	vim.loop.write(global_vars.stdin, bfcontent .. "\n")
+	vim.loop.write(state.stdin, bfcontent .. "\n")
 
 	vim.loop.read_start(
-		global_vars.stdout,
+		state.stdout,
 		vim.schedule_wrap(function(err, data)
 			assert(not err, err)
 			if data then
@@ -415,16 +417,16 @@ local function run_compiler()
 				local bufnr = vim.api.nvim_create_buf(false, true)
 				vim.api.nvim_set_current_buf(bufnr)
 				vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, utils.elements_in_range(utils.split(data), 2))
-				vim.loop.read_stop(global_vars.stdout)
+				vim.loop.read_stop(state.stdout)
 			end
 		end)
 	)
 end
 
 function M.compile()
-	global_vars.stdin = vim.loop.new_pipe(false)
-	global_vars.stdout = vim.loop.new_pipe(false)
-	global_vars.stderr = vim.loop.new_pipe(false)
+	state.stdin = vim.loop.new_pipe(false)
+	state.stdout = vim.loop.new_pipe(false)
+	state.stderr = vim.loop.new_pipe(false)
 	run_compiler()
 end
 

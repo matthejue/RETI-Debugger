@@ -12,12 +12,15 @@
 		\draw [style=directed edge, bend left=15] (0) to node [fill=white, sloped] {restart} (3);
 		\draw [style=directed edge, bend left=15] (1) to node [fill=white, sloped] {show} (3);
 		\draw [style=directed edge, bend left=15] (3) to node [fill=white, sloped] {hide} (1);
-		\draw [style=directed edge, bend left=15] (3) to node [fill=white, sloped] {terminate} (0);
+		\draw [style=directed edge, bend left=15] (3) to node [fill=white, sloped] {complete} (0);
 		\draw [style=directed edge, in=375, out=165] (2) to node [fill=white, sloped] {pupup closed} (3);
 		\draw [style=directed edge, bend right=15] (3) to node [fill=white, sloped] {popup appears} (2);
-		\draw [style=directed edge] (4) to node [fill=white, sloped] {start} (3);
+		\draw [style=directed edge, bend left=15] (4) to node [fill=white, sloped] {start} (3);
 		\draw [style=directed edge, bend right=15] (0) to node [fill=white, sloped] {hide} (5);
 		\draw [style=directed edge, bend right=15] (5) to node [fill=white, sloped] {show} (0);
 		\draw [style=directed edge] (7.center) to (4);
+		\draw [style=directed edge, bend left=15] (3) to node [fill=white, sloped] {quit} (4);
+		\draw [style=directed edge] (0) to node [fill=white, sloped] {quit} (4);
+		\draw [style=directed edge, in=-120, out=-60, loop] (3) to node [fill=white, sloped] {next / restart} ();
 	\end{pgfonlayer}
 \end{tikzpicture}

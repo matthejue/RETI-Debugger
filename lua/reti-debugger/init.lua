@@ -1,7 +1,7 @@
 local configs = require("reti-debugger.configs")
 local windows = require("reti-debugger.windows")
 local actions = require("reti-debugger.actions")
-local global_vars = require("reti-debugger.global_vars")
+local state = require("reti-debugger.state")
 
 local M = {}
 
@@ -78,7 +78,9 @@ local M = {}
 -- Ordnerstruktur von Neovim Plugins aufgebaut ist und worauf sie basiert.
 -- Nicht dafür verantwortlich, dass der PicoC-Compiler perfekt funktioniert.
 -- Wie Neovim Pluginmanager funktionieren die Sache mit Runtimepath. Nicht
--- möglich den RETI-Interreter erneut zu starten.
+-- möglich den RETI-Interreter erneut zu starten. Man kann Keybindings neu
+-- definieren und es gibt buffer only keybindings und globale keybindings.
+-- Statemachine ist aus effizienzgründen nicht genauso umgesetzt
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
@@ -115,32 +117,31 @@ local M = {}
 -- [ ] window layout hide nicht wenn das layout schon unmounted
 -- [ ] restart nur, wenn layout sichtbar
 -- [ ] bei LayoutToggle sollten auch output, error und input window getoggelt werden
+-- [ ] Statemachine für switch mode
+-- [ ] dieser seltsame bug, dass output fenster manchmal direkt verschwindet
+-- nach restart
+-- [ ] wenn man aus menu mittels q rausgeht wurde die Statemenschine nicht zwischendurch aufgerufen
 
-local function set_and_save_state()
-	global_vars.bufnr_on_leaving = vim.api.nvim_get_current_buf()
-	global_vars.winid_on_leaving = vim.api.nvim_get_current_win()
-	global_vars.completed = false
-	global_vars.next_blocked = false
-	global_vars.first_focus_over = false
-  global_vars.visible = true
+local function save_state()
+	state.bufnr_on_leaving = vim.api.nvim_get_current_buf()
+	state.winid_on_leaving = vim.api.nvim_get_current_win()
 end
 
 local function set_pipes()
-	global_vars.stdin = vim.loop.new_pipe(false)
-	global_vars.stdout = vim.loop.new_pipe(false)
-	global_vars.stderr = vim.loop.new_pipe(false)
+	state.stdin = vim.loop.new_pipe(false)
+	state.stdout = vim.loop.new_pipe(false)
+	state.stderr = vim.loop.new_pipe(false)
 end
 
 local function start_interpreter()
-	global_vars.handle, global_vars.interpreter_id = vim.loop.spawn("picoc_compiler", {
+	state.handle, state.interpreter_id = vim.loop.spawn("picoc_compiler", {
 		args = { "-E", "reti", "-P" },
-		stdio = { global_vars.stdin, global_vars.stdout, global_vars.stderr },
+		stdio = { state.stdin, state.stdout, state.stderr },
 	}, function(code, signal)
-		global_vars.completed = true
-		global_vars.next_blocked = true
-		vim.loop.shutdown(global_vars.stdin, function(err)
+		state.delta("complete")
+		vim.loop.shutdown(state.stdin, function(err)
 			assert(not err, err)
-			vim.loop.close(global_vars.handle, function() end)
+			vim.loop.close(state.handle, function() end)
 		end)
 		print("Interpreter terminated with exit code " .. code .. " and signal " .. signal)
 	end)
@@ -149,7 +150,7 @@ end
 local function set_window_options()
 	vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
 
-	if global_vars.scrolling_mode == global_vars.scrolling_modes.autoscrolling then
+	if state.scrolling_mode == state.scrolling_modes.autoscrolling then
 		windows.window_titles_autoscrolling()
 	else
 		windows.window_titles_memory_focus()
@@ -161,37 +162,51 @@ local function set_keybindings()
 	-- │ Layout │
 	-- └────────┘
 	for _, popup in pairs(windows.popups) do
-		vim.keymap.set("n", global_vars.opts.keys.next, actions.next, { buffer = popup.bufnr, silent = true })
 		vim.keymap.set(
 			"n",
-			global_vars.opts.keys.switch_window,
-			actions.switch_windows,
-			{ buffer = popup.bufnr, silent = true }
+			state.opts.keys.next,
+			actions.next,
+			{ buffer = popup.bufnr, silent = true, desc = "Next instruction" }
 		)
-		vim.keymap.set("n", global_vars.opts.keys.switch_window_backwards, function()
+		vim.keymap.set(
+			"n",
+			state.opts.keys.switch_window,
+			actions.switch_windows,
+			{ buffer = popup.bufnr, silent = true, desc = "Switch windows" }
+		)
+		vim.keymap.set("n", state.opts.keys.switch_window_backwards, function()
 			actions.switch_windows(true)
-		end, { buffer = popup.bufnr, silent = true })
-		vim.keymap.set("n", global_vars.opts.keys.quit, actions.quit, { buffer = popup.bufnr, silent = true })
-		vim.keymap.set("n", global_vars.opts.keys.switch_mode, function()
+		end, { buffer = popup.bufnr, silent = true, desc = "Switch windows backward" })
+		vim.keymap.set(
+			"n",
+			state.opts.keys.quit,
+			actions.quit,
+			{ buffer = popup.bufnr, silent = true, desc = "Quit RETI-Debugger" }
+		)
+		vim.keymap.set("n", state.opts.keys.switch_mode, function()
+      state.delta("popup appears")
 			windows.menu_modes:mount()
-		end, { buffer = popup.bufnr, silent = true })
-		vim.keymap.set("n", global_vars.opts.keys.refocus_memory, function()
-			global_vars.first_focus_over = false
+		end, { buffer = popup.bufnr, silent = true, desc = "Menu to switch mode" })
+		vim.keymap.set("n", state.opts.keys.focus_memory, function()
+			state.first_focus_over = false
 			actions.memory_visible()
-		end, { buffer = popup.bufnr, silent = true })
+		end, { buffer = popup.bufnr, silent = true, desc = "Focus memory" })
 		vim.keymap.set("n", ":", "", { buffer = popup.bufnr, silent = true })
+		vim.keymap.set(
+			"n",
+			state.opts.keys.restart,
+			M.restart,
+			{ buffer = popup.bufnr, silent = true, desc = "Restart RETI-Debugger" }
+		)
 	end
 
 	-- ┌──────────────────┐
 	-- │ Error and Output │
 	-- └──────────────────┘
-	if global_vars.opts.keys.restart then
-		vim.keymap.set("n", global_vars.opts.keys.restart, M.restart, { silent = true, desc = "Restart RETI-Debugger" })
-	end
-	if global_vars.opts.keys.hide then
+	if state.opts.keys.hide then
 		vim.keymap.set(
 			"n",
-			global_vars.opts.keys.hide,
+			state.opts.keys.hide,
 			actions.hide_toggle,
 			{ silent = true, desc = "Hide RETI-Debugger windows" }
 		)
@@ -199,24 +214,24 @@ local function set_keybindings()
 end
 
 local function set_global_keybindings()
-	if global_vars.opts.keys.load_example then
+	if state.opts.keys.load_example then
 		vim.keymap.set(
 			"n",
-			global_vars.opts.keys.load_example,
+			state.opts.keys.load_example,
 			":LoadRETIExample<cr>",
 			{ silent = true, desc = "Load an example" }
 		)
 	end
-	if global_vars.opts.keys.compile then
+	if state.opts.keys.compile then
 		vim.keymap.set(
 			"n",
-			global_vars.opts.keys.compile,
+			state.opts.keys.compile,
 			actions.compile,
 			{ silent = true, desc = "Compile from PicoC to RETI" }
 		)
 	end
-	if global_vars.opts.keys.start then
-		vim.keymap.set("n", global_vars.opts.keys.start, M.start, { silent = true, desc = "Start RETI-Debugger" })
+	if state.opts.keys.start then
+		vim.keymap.set("n", state.opts.keys.start, M.start, { silent = true, desc = "Start RETI-Debugger" })
 	end
 end
 
@@ -231,17 +246,18 @@ local function set_commands()
 end
 
 function M.setup(opts)
-	global_vars.opts = vim.tbl_deep_extend("keep", opts, configs)
+	state.opts = vim.tbl_deep_extend("keep", opts, configs)
 
 	set_commands()
 	set_global_keybindings()
 end
 
 function M.start()
-	if not global_vars.completed then
+	if not state.delta("start") then
 		return
 	end
-	set_and_save_state()
+	state.delta2("start")
+	save_state()
 	set_pipes()
 	start_interpreter()
 	actions.init_buffer()
@@ -251,17 +267,17 @@ function M.start()
 end
 
 function M.restart()
-  if not global_vars.visible then
-    return
-  end
+	if not state.delta("restart") then
+		return
+	end
 	actions.quit()
-	vim.api.nvim_set_current_win(global_vars.winid_on_leaving)
-	if not (global_vars.bufnr_on_leaving == vim.api.nvim_get_current_buf()) then
+	vim.api.nvim_set_current_win(state.winid_on_leaving)
+	if not (state.bufnr_on_leaving == vim.api.nvim_get_current_buf()) then
 		print("Can't restart, window from which code was taken doesn't have the same buffer anymore.")
 		return
 	end
 	if not vim.wait(5000, function()
-		return global_vars.completed
+		return state.interpreter_completed
 	end) then
 		return
 	end

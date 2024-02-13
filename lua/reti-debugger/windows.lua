@@ -2,7 +2,7 @@ local Layout = require("nui.layout")
 local Popup = require("nui.popup")
 local utils = require("reti-debugger.utils")
 local Input = require("nui.input")
-local global_vars = require("reti-debugger.global_vars")
+local state = require("reti-debugger.state")
 local Menu = require("nui.menu")
 
 local M = {}
@@ -196,8 +196,8 @@ M.input_window = Input(popup_options_input, {
 		if val == "" then
 			val = "0"
 		end
-		vim.loop.write(global_vars.stdin, val .. "\n")
-		global_vars.next_blocked = false
+		vim.loop.write(state.stdin, val .. "\n")
+    state.delta("popup closed")
 	end,
 	on_change = function(val)
 		if val == "-" or val == "" then
@@ -250,24 +250,25 @@ local keymap = {
 
 M.menu_modes = Menu(popup_options_menu, {
 	lines = {
-		Menu.item("Autoscrolling", { id = global_vars.scrolling_modes.autoscrolling }),
-		Menu.item("Memory Focus", { id = global_vars.scrolling_modes.memory_focus }),
+		Menu.item("Autoscrolling", { id = state.scrolling_modes.autoscrolling }),
+		Menu.item("Memory Focus", { id = state.scrolling_modes.memory_focus }),
 	},
 	max_width = 20,
 	keymap = keymap,
 	on_submit = function(item)
-		if item.id == global_vars.scrolling_modes.autoscrolling then
-			global_vars.scrolling_mode = global_vars.scrolling_modes.autoscrolling
+		if item.id == state.scrolling_modes.autoscrolling then
+			state.scrolling_mode = state.scrolling_modes.autoscrolling
 			M.window_titles_autoscrolling()
-		else -- item.id == global_vars.scrolling_modes.memory_focus
+		else -- item.id == state.scrolling_modes.memory_focus
 			set_no_scrollbind()
-			global_vars.first_focus_over = false
-			global_vars.scrolling_mode = global_vars.scrolling_modes.memory_focus
+			state.first_focus_over = false
+			state.scrolling_mode = state.scrolling_modes.memory_focus
 			M.window_titles_memory_focus()
 		end
+    state.delta("popup closed")
 	end,
 	should_skip_item = function(item)
-		if item.id == global_vars.scrolling_mode then
+		if item.id == state.scrolling_mode then
 			return true
 		else
 			return false
@@ -348,7 +349,8 @@ M.menu_examples = Menu(popup_options_menu, {
 	keymap = keymap,
 	on_submit = function(item)
 		M.example = item.id
-    vim.loop.async_send(global_vars.async_event)
+    vim.loop.async_send(state.async_event)
+    state.delta("popup closed")
 	end,
 	should_skip_item = function(item)
 		if item.id == M.example then
