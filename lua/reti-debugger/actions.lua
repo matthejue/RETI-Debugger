@@ -101,7 +101,7 @@ function M.memory_visible()
 		vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { math.floor(win_height / 2), 0 })
 	end
 
-  if not state.delta2("first_focus") then
+  if not state.delta2("first focus") then
 		return
 	end
 
