@@ -122,6 +122,8 @@ local M = {}
 -- nach restart
 -- [ ] wenn man aus menu mittels q rausgeht wurde die Statemenschine nicht zwischendurch aufgerufen
 -- [ ] report verlinken nicht vergessen
+-- [ ] tag für artifact erstellen
+-- [ ] Github actions für das Autogenerieren des Reports erwähnen
 
 local function save_state()
 	state.bufnr_on_leaving = vim.api.nvim_get_current_buf()
@@ -139,7 +141,7 @@ local function start_interpreter()
 		args = { "-E", "reti", "-P" },
 		stdio = { state.stdin, state.stdout, state.stderr },
 	}, function(code, signal)
-		state.delta_winodws("complete")
+		state.delta_windows("complete")
 		vim.loop.shutdown(state.stdin, function(err)
 			assert(not err, err)
 			vim.loop.close(state.handle, function() end)
@@ -178,14 +180,8 @@ local function set_keybindings()
 		vim.keymap.set("n", state.opts.keys.switch_window_backwards, function()
 			actions.switch_windows(true)
 		end, { buffer = popup.bufnr, silent = true, desc = "Switch windows backward" })
-		vim.keymap.set(
-			"n",
-			state.opts.keys.quit,
-			actions.quit,
-			{ buffer = popup.bufnr, silent = true, desc = "Quit RETI-Debugger" }
-		)
 		vim.keymap.set("n", state.opts.keys.switch_mode, function()
-      state.delta_winodws("popup appears")
+      state.delta_windows("popup appears")
 			windows.menu_modes:mount()
 		end, { buffer = popup.bufnr, silent = true, desc = "Menu to switch mode" })
 		vim.keymap.set("n", state.opts.keys.focus_memory, function()
@@ -199,6 +195,12 @@ local function set_keybindings()
 			M.restart,
 			{ buffer = popup.bufnr, silent = true, desc = "Restart RETI-Debugger" }
 		)
+		vim.keymap.set(
+			"n",
+			state.opts.keys.quit,
+			actions.quit,
+			{ buffer = popup.bufnr, silent = true, desc = "Quit RETI-Debugger" }
+		)
 	end
 
 	-- ┌──────────────────┐
@@ -209,7 +211,7 @@ local function set_keybindings()
 			"n",
 			state.opts.keys.hide,
 			actions.hide_toggle,
-			{ silent = true, desc = "Hide RETI-Debugger windows" }
+			{ silent = true, desc = "Hide RETI-Debugger layout" }
 		)
 	end
 end
@@ -254,7 +256,7 @@ function M.setup(opts)
 end
 
 function M.start()
-	if not state.delta_winodws("start") then
+	if not state.delta_windows("start") then
 		return
 	end
 	state.delta_focus("start")
@@ -268,7 +270,7 @@ function M.start()
 end
 
 function M.restart()
-	if not state.delta_winodws("restart") then
+	if not state.delta_windows("restart") then
 		return
 	end
 	actions.quit()

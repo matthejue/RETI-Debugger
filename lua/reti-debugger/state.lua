@@ -5,7 +5,7 @@ M.next_blocked = true
 M.layout_visible = false
 M.popup_visible = false
 
-function M.delta_winodws(letter)
+function M.delta_windows(letter)
 	if
 		M.interpreter_completed
 		-- and M.next_blocked
