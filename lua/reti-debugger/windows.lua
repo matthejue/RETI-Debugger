@@ -197,7 +197,7 @@ M.input_window = Input(popup_options_input, {
 			val = "0"
 		end
 		vim.loop.write(state.stdin, val .. "\n")
-    state.delta("popup closed")
+    state.delta_winodws("popup closed")
 	end,
 	on_change = function(val)
 		if val == "-" or val == "" then
@@ -256,16 +256,13 @@ M.menu_modes = Menu(popup_options_menu, {
 	max_width = 20,
 	keymap = keymap,
 	on_submit = function(item)
-		if item.id == state.scrolling_modes.autoscrolling then
-			state.scrolling_mode = state.scrolling_modes.autoscrolling
+		if state.delta_mode(item.id) then
 			M.window_titles_autoscrolling()
 		else -- item.id == state.scrolling_modes.memory_focus
 			set_no_scrollbind()
-			state.first_focus_over = false
-			state.scrolling_mode = state.scrolling_modes.memory_focus
 			M.window_titles_memory_focus()
 		end
-    state.delta("popup closed")
+    state.delta_winodws("popup closed")
 	end,
 	should_skip_item = function(item)
 		if item.id == state.scrolling_mode then
@@ -350,7 +347,7 @@ M.menu_examples = Menu(popup_options_menu, {
 	on_submit = function(item)
 		M.example = item.id
     vim.loop.async_send(state.async_event)
-    state.delta("popup closed")
+    state.delta_winodws("popup closed")
 	end,
 	should_skip_item = function(item)
 		if item.id == M.example then

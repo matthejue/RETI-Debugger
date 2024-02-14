@@ -5,7 +5,7 @@ M.next_blocked = true
 M.layout_visible = false
 M.popup_visible = false
 
-function M.delta(letter)
+function M.delta_winodws(letter)
 	if
 		M.interpreter_completed
 		-- and M.next_blocked
@@ -112,11 +112,10 @@ function M.delta(letter)
 		-- M.interpreter_completed
 		-- and M.next_blocked
 		-- and M.layout_visible
-    -- and
-		not M.popup_visible
-		and letter == "restart"
+		-- and
+		not M.popup_visible and letter == "restart"
 	then -- 6
-    -- done by start function called within restart
+		-- done by start function called within restart
 		-- 	M.interpreter_completed = false
 		-- 	M.next_blocked = false
 		-- 	M.layout_visible = true
@@ -176,7 +175,7 @@ end
 
 M.first_focus_over = false
 
-function M.delta2(letter)
+function M.delta_focus(letter)
 	if
 		-- M.first_focus_over
 		-- and
@@ -196,6 +195,17 @@ M.scrolling_modes = {
 	memory_focus = 2,
 }
 M.scrolling_mode = M.scrolling_modes.memory_focus
+
+function M.delta_mode(letter)
+	if letter == M.scrolling_modes.autoscrolling then
+    M.scrolling_mode = M.scrolling_modes.autoscrolling
+    return true
+	elseif letter == M.scrolling_modes.memory_focus then
+    M.first_focus_over = false
+    M.scrolling_mode = M.scrolling_modes.memory_focus
+    return false
+	end
+end
 
 M.opts = {}
 M.handle = nil

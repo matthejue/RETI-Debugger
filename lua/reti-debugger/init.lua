@@ -121,6 +121,7 @@ local M = {}
 -- [ ] dieser seltsame bug, dass output fenster manchmal direkt verschwindet
 -- nach restart
 -- [ ] wenn man aus menu mittels q rausgeht wurde die Statemenschine nicht zwischendurch aufgerufen
+-- [ ] report verlinken nicht vergessen
 
 local function save_state()
 	state.bufnr_on_leaving = vim.api.nvim_get_current_buf()
@@ -138,7 +139,7 @@ local function start_interpreter()
 		args = { "-E", "reti", "-P" },
 		stdio = { state.stdin, state.stdout, state.stderr },
 	}, function(code, signal)
-		state.delta("complete")
+		state.delta_winodws("complete")
 		vim.loop.shutdown(state.stdin, function(err)
 			assert(not err, err)
 			vim.loop.close(state.handle, function() end)
@@ -184,7 +185,7 @@ local function set_keybindings()
 			{ buffer = popup.bufnr, silent = true, desc = "Quit RETI-Debugger" }
 		)
 		vim.keymap.set("n", state.opts.keys.switch_mode, function()
-      state.delta("popup appears")
+      state.delta_winodws("popup appears")
 			windows.menu_modes:mount()
 		end, { buffer = popup.bufnr, silent = true, desc = "Menu to switch mode" })
 		vim.keymap.set("n", state.opts.keys.focus_memory, function()
@@ -253,10 +254,10 @@ function M.setup(opts)
 end
 
 function M.start()
-	if not state.delta("start") then
+	if not state.delta_winodws("start") then
 		return
 	end
-	state.delta2("start")
+	state.delta_focus("start")
 	save_state()
 	set_pipes()
 	start_interpreter()
@@ -267,7 +268,7 @@ function M.start()
 end
 
 function M.restart()
-	if not state.delta("restart") then
+	if not state.delta_winodws("restart") then
 		return
 	end
 	actions.quit()
