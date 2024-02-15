@@ -80,7 +80,7 @@ local M = {}
 -- Wie Neovim Pluginmanager funktionieren die Sache mit Runtimepath. Nicht
 -- möglich den RETI-Interreter erneut zu starten. Man kann Keybindings neu
 -- definieren und es gibt buffer only keybindings und globale keybindings.
--- Statemachine ist aus effizienzgründen nicht genauso umgesetzt
+-- Statemachine ist aus effizienzgründen nicht genauso umgesetzt, newline mentionen. Videoserie erwähnen
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
@@ -118,12 +118,14 @@ local M = {}
 -- [ ] restart nur, wenn layout sichtbar
 -- [ ] bei LayoutToggle sollten auch output, error und input window getoggelt werden
 -- [ ] Statemachine für switch mode
--- [ ] dieser seltsame bug, dass output fenster manchmal direkt verschwindet
 -- nach restart
 -- [ ] wenn man aus menu mittels q rausgeht wurde die Statemenschine nicht zwischendurch aufgerufen
 -- [ ] report verlinken nicht vergessen
 -- [ ] tag für artifact erstellen
 -- [ ] Github actions für das Autogenerieren des Reports erwähnen, das ist Docker Compose
+-- [ ] fib_rec not working
+-- [ ] dieser seltsame bug, dass output fenster manchmal direkt verschwindet
+-- [ ] Artifact Tag erstellen
 
 local function save_state()
 	state.bufnr_on_leaving = vim.api.nvim_get_current_buf()
@@ -202,10 +204,6 @@ local function set_keybindings()
 			{ buffer = popup.bufnr, silent = true, desc = "Quit RETI-Debugger" }
 		)
 	end
-
-	-- ┌──────────────────┐
-	-- │ Error and Output │
-	-- └──────────────────┘
 	if state.opts.keys.hide then
 		vim.keymap.set(
 			"n",
