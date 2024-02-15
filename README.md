@@ -4,7 +4,7 @@
   </a>
 
   <p align="center">
-    <strong>Debugger*</strong> for the <strong>RETI assembler</strong>.
+    <strong>Debugger</strong> for the <strong>RETI assembler</strong>.
     <br />
     <br />
     <a href="./LICENSE"><img src="https://img.shields.io/github/license/matthejue/PicoC-Compiler.svg"></a>
