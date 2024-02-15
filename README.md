@@ -4,12 +4,11 @@
   </a>
 
   <p align="center">
-    Debugger for the RETI assembler.
+    **Debugger** for the **RETI assembler**.
     <br />
     <br />
     <a href="./LICENSE"><img src="https://img.shields.io/github/license/matthejue/PicoC-Compiler.svg"></a>
     <img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg">
-    <img height="20px" src="http://ForTheBadge.com/images/badges/made-with-python.svg">
     <br />
     <br />
     <a href="https://youtu.be/Y9PtgwD9vg4">Explanation Video</a>
