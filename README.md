@@ -4,10 +4,14 @@
   </a>
 
   <p align="center">
-    <strong>Neovim plugin</strong> that is a <strong>Debugger</strong> for the <strong>RETI assembler</strong>.
+    <strong>Neovim plugin</strong> that acts as a <strong>Debugger</strong> for the <strong>RETI assembler</strong>.
     <br />
     <br />
-    <a href="https://youtu.be/Y9PtgwD9vg4">Explanation Video</a>
+    <a href="https://youtu.be/RjGhruUwERQ?feature=shared">Video: Testing with provided Dockerfile</a> (recommended)
+    ·
+    <a href="https://youtu.be/p5zNdTiBRNg?feature=shared">Video: Manual installation for Ubuntu 24.04</a>
+    <br />
+    <a href="https://youtu.be/rTsYTDNR0do?feature=shared">Video: Feature showcase and implementation details</a>
     ·
     <a href="https://github.com/matthejue/RETI-Debugger_Documentation/releases/download/master/Report.pdf">Report</a> (Installation instructions in the Appendix)
     <br />
