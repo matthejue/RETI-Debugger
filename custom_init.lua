@@ -21,10 +21,10 @@ local plugins = {
     config = function()
       require("reti-debugger").setup({
         keys = {
-          load_example = "<leader>pl",
-          compile = "<leader>pc",
-          start = "<leader>ps",
-          hide = "<leader>ph"
+          load_example = "<leader>rl",
+          compile = "<leader>rc",
+          start = "<leader>rs",
+          hide = "<leader>rh"
         },
       })
     end,
@@ -36,6 +36,7 @@ local plugins = {
       vim.o.timeout = true
       vim.o.timeoutlen = 300
     end,
+    opts = {}
   },
   {
     "rebelot/kanagawa.nvim",
