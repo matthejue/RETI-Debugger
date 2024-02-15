@@ -123,7 +123,7 @@ local M = {}
 -- [ ] wenn man aus menu mittels q rausgeht wurde die Statemenschine nicht zwischendurch aufgerufen
 -- [ ] report verlinken nicht vergessen
 -- [ ] tag für artifact erstellen
--- [ ] Github actions für das Autogenerieren des Reports erwähnen
+-- [ ] Github actions für das Autogenerieren des Reports erwähnen, das ist Docker Compose
 
 local function save_state()
 	state.bufnr_on_leaving = vim.api.nvim_get_current_buf()
