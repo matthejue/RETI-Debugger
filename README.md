@@ -9,7 +9,7 @@
     <br />
     <a href="https://youtu.be/Y9PtgwD9vg4">Explanation Video</a>
     ·
-    <a href="https://github.com/matthejue/RETI-Debugger_Documentation/releases/download/master/Report.pdf">Documentation</a> (Installation instructions in the Appendix)
+    <a href="https://github.com/matthejue/RETI-Debugger_Documentation/releases/download/master/Report.pdf">Report</a> (Installation instructions in the Appendix)
     <br />
   </p>
 </div>
