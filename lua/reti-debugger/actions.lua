@@ -105,7 +105,8 @@ function M.memory_visible()
 		vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { bfline + 1, 0 })
 	else -- uart and eprom
 		local win_height = vim.api.nvim_win_get_height(windows.popups.sram1.winid)
-		vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { math.floor(win_height / 2), 0 })
+    local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
+		vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { math.min(math.floor(win_height / 2), buf_height), 0 })
 	end
 
   if not state.delta_focus("first focus") then
@@ -187,7 +188,7 @@ local function update_sram()
 				if state.scrolling_mode == state.scrolling_modes.autoscrolling then
 					pcall(autoscrolling)
 				else
-					pcall(M.memory_visible)
+					M.memory_visible()
 				end
         vim.api.nvim_set_current_win(M.left_window)
         M.autoscrolling_over = true
