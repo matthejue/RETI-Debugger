@@ -262,7 +262,6 @@ M.menu_modes = Menu(popup_options_menu, {
 			set_no_scrollbind()
 			M.window_titles_memory_focus()
 		end
-    state.delta_windows("popup closed")
 	end,
 	should_skip_item = function(item)
 		if item.id == state.scrolling_mode then
@@ -271,6 +270,9 @@ M.menu_modes = Menu(popup_options_menu, {
 			return false
 		end
 	end,
+  on_close = function()
+    state.delta_windows("popup closed")
+  end
 })
 
 
@@ -356,6 +358,9 @@ M.menu_examples = Menu(popup_options_menu, {
 			return false
 		end
 	end,
+  on_close = function()
+    state.delta_windows("popup closed")
+  end
 })
 
 return M
