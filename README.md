@@ -18,4 +18,4 @@
   </p>
 </div>
 
-[![asciicast](./misc/demo_recording.sg)](https://asciinema.org/a/640765)
+[![asciicast](./misc/demo_recording.svg)](https://asciinema.org/a/640765)
