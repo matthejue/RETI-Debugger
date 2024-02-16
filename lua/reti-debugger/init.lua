@@ -80,7 +80,9 @@ local M = {}
 -- Wie Neovim Pluginmanager funktionieren die Sache mit Runtimepath. Nicht
 -- möglich den RETI-Interreter erneut zu starten. Man kann Keybindings neu
 -- definieren und es gibt buffer only keybindings und globale keybindings.
--- Statemachine ist aus effizienzgründen nicht genauso umgesetzt, newline mentionen. Videoserie erwähnen
+-- Statemachine ist aus effizienzgründen nicht genauso umgesetzt, newline
+-- mentionen. Videoserie erwähnen. TUI Interface erklären, was Registers Rel
+-- ist
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
