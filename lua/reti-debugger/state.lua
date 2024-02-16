@@ -92,7 +92,7 @@ function M.delta_windows(letter)
 		-- and
 		not M.popup_visible and letter == "quit"
 	then -- 5
-		M.interpreter_completed = true
+		-- M.interpreter_completed = true
 		M.next_blocked = true
 		M.layout_visible = false
 		-- M.popup_visible = false

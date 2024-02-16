@@ -55,7 +55,7 @@ local M = {}
 -- Picoc-Compiler aus den Commits aufzählen, die verschiedenen Modes erklären,
 -- wieso PicocCompiler, davor billiger Trick, kleine Details, wie das sich
 -- Überschriften ändern, Scratchbuffer erwähnen, damit nicht nervig beim exiten
--- und bei Übergabe newlines entfernen für input() von Python, Übertragungsende
+-- und bei Übergabe \n ersetzn durch newline für input() von Python, Übertragungsende
 -- über newline, global und buffer only commands, wie Zeiger zustandekommen,
 -- Datensegmentstart und Ende werden aus EPROM rausgelesen, PicoC-Compiler wird
 -- über Stdin Code übergeben, PicocCompiler in der Lage direkt Inputs aus
@@ -82,7 +82,7 @@ local M = {}
 -- definieren und es gibt buffer only keybindings und globale keybindings.
 -- Statemachine ist aus effizienzgründen nicht genauso umgesetzt, newline
 -- mentionen. Videoserie erwähnen. TUI Interface erklären, was Registers Rel
--- ist
+-- ist. Menu scips over currently selected options, nicht möglich in input field keine Zahl einzugeben. Title change when switching modes. Grund warum scratch buffer genutzt wegen quitten von Neovim usw.
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
@@ -165,9 +165,6 @@ local function set_window_options()
 end
 
 local function set_keybindings()
-	-- ┌────────┐
-	-- │ Layout │
-	-- └────────┘
 	for _, popup in pairs(windows.popups) do
 		vim.keymap.set(
 			"n",
@@ -192,7 +189,6 @@ local function set_keybindings()
 			state.first_focus_over = false
 			actions.memory_visible()
 		end, { buffer = popup.bufnr, silent = true, desc = "Focus memory" })
-		vim.keymap.set("n", ":", "", { buffer = popup.bufnr, silent = true })
 		vim.keymap.set(
 			"n",
 			state.opts.keys.restart,

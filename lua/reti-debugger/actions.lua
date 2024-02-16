@@ -27,7 +27,6 @@ local function set_layout_events_and_keybindings(popup)
 	end, { buffer = popup.bufnr, silent = true })
   -- else it is annoying to get an error message for failed to find pattern when suddently walking into a print call instruction
 	vim.keymap.set("n", state.opts.keys.next, "", { buffer = popup.bufnr, silent = true })
-	vim.keymap.set("n", ":", "", { buffer = popup.bufnr, silent = true })
 end
 
 -- ┌────────────────────────┐
@@ -141,8 +140,6 @@ end
 local function ask_for_input()
   state.delta_windows("popup appears")
 	windows.input_window:mount()
-	-- it should not be possible to execute next command in a buffer oustide the input window
-	vim.keymap.set("n", ":", "", { buffer = windows.input_window.bufnr, silent = true })
 end
 
 local function check_for_previous_outputs(data)
