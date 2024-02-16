@@ -121,14 +121,13 @@ local M = {}
 -- [ ] bei LayoutToggle sollten auch output, error und input window getoggelt werden
 -- [ ] Statemachine für switch mode
 -- nach restart
--- [ ] wenn man aus menu mittels q rausgeht wurde die Statemenschine nicht zwischendurch aufgerufen
--- [ ] report verlinken nicht vergessen
--- [ ] tag für artifact erstellen
--- [ ] Github actions für das Autogenerieren des Reports erwähnen, das ist Docker Compose
--- [ ] fib_rec not working
--- [ ] dieser seltsame bug, dass output fenster manchmal direkt verschwindet
+-- [x] wenn man aus menu mittels q rausgeht wurde die Statemenschine nicht zwischendurch aufgerufen
+-- [x] report verlinken nicht vergessen
+-- [x] Github actions für das Autogenerieren des Reports erwähnen, das ist Docker Compose
+-- [x] fib_rec not working
+-- [x] dieser seltsame bug, dass output fenster manchmal direkt verschwindet
 -- [ ] Artifact Tag erstellen
--- [ ] Wenn man im focus für memory_focus anmacht während PC noch im EPROM ist
+-- [x] Wenn man focus für memory_focus anmacht während PC noch im EPROM ist
 
 local function save_state()
 	state.bufnr_on_leaving = vim.api.nvim_get_current_buf()
