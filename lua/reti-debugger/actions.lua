@@ -7,8 +7,16 @@ local M = {}
 -- ┌────────────────────────┐
 -- │ Keybindings and events │
 -- └────────────────────────┘
+
+-- to prevent window closing immediately after opening in autoscrolling mode
+M.autoscrolling_over = false
+
 local function set_layout_events_and_keybindings(popup)
+  M.autoscrolling_over = false
 	popup:on("BufLeave", function()
+    if not M.autoscrolling_over then
+      return
+    end
 		popup:unmount()
     state.delta_windows("popup closed")
 	end, { once = true })
@@ -159,6 +167,8 @@ end
 -- ┌───────────────────────────────────────────┐
 -- │ Read buffer content and acknowledge chain │
 -- └───────────────────────────────────────────┘
+M.left_window = nil
+
 local function update_sram()
 	vim.loop.write(state.stdin, "ack\n")
 
@@ -173,11 +183,14 @@ local function update_sram()
 				vim.api.nvim_buf_set_lines(windows.popups.sram3.bufnr, 0, -1, true, content)
 
 				-- ignore Cursor position outside buffer error because of a bug in Neovim API
+        M.left_window = vim.api.nvim_get_current_win()
 				if state.scrolling_mode == state.scrolling_modes.autoscrolling then
 					pcall(autoscrolling)
 				else
 					pcall(M.memory_visible)
 				end
+        vim.api.nvim_set_current_win(M.left_window)
+        M.autoscrolling_over = true
 			end
 		end)
 	)

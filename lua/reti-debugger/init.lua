@@ -128,6 +128,7 @@ local M = {}
 -- [ ] fib_rec not working
 -- [ ] dieser seltsame bug, dass output fenster manchmal direkt verschwindet
 -- [ ] Artifact Tag erstellen
+-- [ ] Wenn man im focus für memory_focus anmacht während PC noch im EPROM ist
 
 local function save_state()
 	state.bufnr_on_leaving = vim.api.nvim_get_current_buf()
