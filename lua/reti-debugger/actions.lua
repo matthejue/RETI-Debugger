@@ -12,28 +12,28 @@ local M = {}
 M.autoscrolling_over = false
 
 local function set_layout_events_and_keybindings(popup)
-  M.autoscrolling_over = false
+	M.autoscrolling_over = false
 	popup:on("BufLeave", function()
-    if not M.autoscrolling_over then
-      return
-    end
+		if not M.autoscrolling_over then
+			return
+		end
 		popup:unmount()
-    state.delta_windows("popup closed")
+		state.delta_windows("popup closed")
 	end, { once = true })
 
 	vim.keymap.set("n", state.opts.keys.quit, function()
 		popup:unmount()
-    state.delta_windows("popup closed")
+		state.delta_windows("popup closed")
 	end, { buffer = popup.bufnr, silent = true })
 	vim.keymap.set("n", "<cr>", function()
 		popup:unmount()
-    state.delta_windows("popup closed")
+		state.delta_windows("popup closed")
 	end, { buffer = popup.bufnr, silent = true })
 	vim.keymap.set("n", "<esc>", function()
 		popup:unmount()
-    state.delta_windows("popup closed")
+		state.delta_windows("popup closed")
 	end, { buffer = popup.bufnr, silent = true })
-  -- else it is annoying to get an error message for failed to find pattern when suddently walking into a print call instruction
+	-- else it is annoying to get an error message for failed to find pattern when suddently walking into a print call instruction
 	vim.keymap.set("n", state.opts.keys.next, "", { buffer = popup.bufnr, silent = true })
 end
 
@@ -105,11 +105,11 @@ function M.memory_visible()
 		vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { bfline + 1, 0 })
 	else -- uart and eprom
 		local win_height = vim.api.nvim_win_get_height(windows.popups.sram1.winid)
-    local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
+		local buf_height = vim.api.nvim_buf_line_count(windows.popups.sram1.bufnr)
 		vim.api.nvim_win_set_cursor(windows.popups.sram1.winid, { math.min(math.floor(win_height / 2), buf_height), 0 })
 	end
 
-  if not state.delta_focus("first focus") then
+	if not state.delta_focus("first focus") then
 		return
 	end
 
@@ -132,14 +132,14 @@ end
 -- └─────────────────────────────────────────┘
 
 local function display_error(data)
-  state.delta_windows("popup appears")
+	state.delta_windows("popup appears")
 	windows.error_window:mount()
 	vim.api.nvim_buf_set_lines(windows.error_window.bufnr, 0, -1, false, utils.elements_in_range(utils.split(data), 2))
 	set_layout_events_and_keybindings(windows.error_window)
 end
 
 local function display_output(data)
-  state.delta_windows("popup appears")
+	state.delta_windows("popup appears")
 	windows.output_window:mount()
 	local val = string.match(data, "Output: (%-?%d*)")
 	vim.api.nvim_buf_set_lines(windows.output_window.bufnr, 0, -1, false, { val })
@@ -147,7 +147,7 @@ local function display_output(data)
 end
 
 local function ask_for_input()
-  state.delta_windows("popup appears")
+	state.delta_windows("popup appears")
 	windows.input_window:mount()
 end
 
@@ -160,6 +160,7 @@ local function check_for_previous_outputs(data)
 		return utils.elements_in_range(utils.split(data), 2)
 	elseif string.match(data, "Input:") then
 		ask_for_input()
+    windows.current_window = windows.current_window - 1
 		return
 	end
 	return utils.split(data)
@@ -169,93 +170,53 @@ end
 -- │ Read buffer content and acknowledge chain │
 -- └───────────────────────────────────────────┘
 M.left_window = nil
+M.current_window = 1
 
-local function update_sram()
-	vim.loop.write(state.stdin, "ack\n")
-
+local function update_window()
 	vim.loop.read_start(
 		state.stdout,
 		vim.schedule_wrap(function(err, data)
 			assert(not err, err)
 			if data then
-				local content = utils.split(data)
-				vim.api.nvim_buf_set_lines(windows.popups.sram1.bufnr, 0, -1, true, content)
-				vim.api.nvim_buf_set_lines(windows.popups.sram2.bufnr, 0, -1, true, content)
-				vim.api.nvim_buf_set_lines(windows.popups.sram3.bufnr, 0, -1, true, content)
+				windows.current_window = windows.current_window + 1
 
-				-- ignore Cursor position outside buffer error because of a bug in Neovim API
-        M.left_window = vim.api.nvim_get_current_win()
-				if state.scrolling_mode == state.scrolling_modes.autoscrolling then
-					pcall(autoscrolling)
-				else
-					M.memory_visible()
-				end
-        vim.api.nvim_set_current_win(M.left_window)
-        M.autoscrolling_over = true
-			end
-		end)
-	)
-end
+				if windows.popups_order[windows.current_window] == "registers" then
+					state.registers = data
+					data = check_for_previous_outputs(data)
+					if not data then
+						return
+					end
+        elseif windows.popups_order[windows.current_window] == "eprom" then
+					state.eprom = data
+					data = utils.split(data)
+				elseif windows.popups_order[windows.current_window] == "sram1" then
+					local content = utils.split(data)
+					vim.api.nvim_buf_set_lines(windows.popups.sram1.bufnr, 0, -1, true, content)
+					vim.api.nvim_buf_set_lines(windows.popups.sram2.bufnr, 0, -1, true, content)
+					vim.api.nvim_buf_set_lines(windows.popups.sram3.bufnr, 0, -1, true, content)
 
-local function update_uart()
-	vim.loop.write(state.stdin, "ack\n")
-
-	vim.loop.read_start(
-		state.stdout,
-		vim.schedule_wrap(function(err, data)
-			assert(not err, err)
-			if data then
-				vim.api.nvim_buf_set_lines(windows.popups.uart.bufnr, 0, -1, true, utils.split(data))
-				update_sram()
-			end
-		end)
-	)
-end
-
-local function update_eprom()
-	vim.loop.write(state.stdin, "ack\n")
-
-	vim.loop.read_start(
-		state.stdout,
-		vim.schedule_wrap(function(err, data)
-			assert(not err, err)
-			if data then
-				vim.api.nvim_buf_set_lines(windows.popups.eprom.bufnr, 0, -1, true, utils.split(data))
-				state.eprom = data
-				update_uart()
-			end
-		end)
-	)
-end
-
-local function update_registers_rel()
-	vim.loop.write(state.stdin, "ack\n")
-
-	vim.loop.read_start(
-		state.stdout,
-		vim.schedule_wrap(function(err, data)
-			assert(not err, err)
-			if data then
-				vim.api.nvim_buf_set_lines(windows.popups.registers_rel.bufnr, 0, -1, true, utils.split(data))
-				update_eprom()
-			end
-		end)
-	)
-end
-
-local function update_registers()
-	vim.loop.read_start(
-		state.stdout,
-		vim.schedule_wrap(function(err, data)
-			assert(not err, err)
-			if data then
-				local data_table_slice = check_for_previous_outputs(data)
-				if not data_table_slice then
+					-- ignore Cursor position outside buffer error because of a bug in Neovim API
+					M.left_window = vim.api.nvim_get_current_win()
+					if state.scrolling_mode == state.scrolling_modes.autoscrolling then
+						pcall(autoscrolling)
+					else
+						M.memory_visible()
+					end
+					vim.api.nvim_set_current_win(M.left_window)
+					M.autoscrolling_over = true
 					return
+				else
+					data = utils.split(data)
 				end
-				vim.api.nvim_buf_set_lines(windows.popups.registers.bufnr, 0, -1, true, data_table_slice)
-				state.registers = data
-				update_registers_rel()
+
+				vim.api.nvim_buf_set_lines(
+					windows.popups[windows.popups_order[windows.current_window]].bufnr,
+					0,
+					-1,
+					true,
+					data
+				)
+				vim.loop.write(state.stdin, "ack\n")
 			end
 		end)
 	)
@@ -265,16 +226,20 @@ end
 -- │ Functions for keymaps │
 -- └───────────────────────┘
 function M.init_buffer()
+	windows.current_window = 0
+
 	local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
 	bfcontent = bfcontent:gsub("\n", "newline")
 
 	vim.loop.write(state.stdin, bfcontent .. "\n")
-	update_registers()
+	update_window()
 end
 
 local function next_cycle()
+	windows.current_window = 0
+
 	vim.loop.write(state.stdin, "next \n")
-	update_registers()
+	update_window()
 end
 
 function M.next()
@@ -298,7 +263,7 @@ end
 function M.hide_toggle()
 	if state.delta_windows("hide") then
 		windows.layout:hide()
-  elseif state.delta_windows("show") then
+	elseif state.delta_windows("show") then
 		windows.layout:show()
 		vim.api.nvim_set_current_win(windows.popups[windows.popups_order[windows.current_popup]].winid)
 		vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
@@ -392,7 +357,7 @@ function M.load_example(tbl)
 	end))
 
 	if tbl.args == "" then
-    state.delta_windows("popup appears")
+		state.delta_windows("popup appears")
 		windows.menu_examples:mount()
 		return
 	end
