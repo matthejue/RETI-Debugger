@@ -229,7 +229,7 @@ function M.init_buffer()
 	windows.current_window = 0
 
 	local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
-	bfcontent = bfcontent:gsub("\n", "newline")
+	bfcontent = bfcontent:gsub("\n", string.char(4))
 
 	vim.loop.write(state.stdin, bfcontent .. "\n")
 	update_window()
@@ -379,7 +379,7 @@ local function run_compiler()
 	end)
 
 	local bfcontent = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
-	bfcontent = bfcontent:gsub("\n", "newline")
+	bfcontent = bfcontent:gsub("\n", string.char(4))
 	vim.loop.write(state.stdin, bfcontent .. "\n")
 
 	vim.loop.read_start(
