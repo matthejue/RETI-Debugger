@@ -170,6 +170,17 @@ local function set_window_options()
 	else
 		windows.window_titles_memory_focus()
 	end
+  state.timer = vim.loop.new_timer()
+	state.timer:start(1000, 1000, vim.schedule_wrap(function()
+		local width = vim.api.nvim_get_option("columns")
+		local height = vim.api.nvim_get_option("lines")
+		windows.layout:update({
+			size = {
+				width = width,
+				height = height,
+			},
+		})
+	end))
 end
 
 local function set_keybindings()
@@ -190,7 +201,7 @@ local function set_keybindings()
 			actions.switch_windows(true)
 		end, { buffer = popup.bufnr, silent = true, desc = "Switch windows backward" })
 		vim.keymap.set("n", state.opts.keys.switch_mode, function()
-      state.delta_windows("popup appears")
+			state.delta_windows("popup appears")
 			windows.menu_modes:mount()
 		end, { buffer = popup.bufnr, silent = true, desc = "Menu to switch mode" })
 		vim.keymap.set("n", state.opts.keys.focus_memory, function()

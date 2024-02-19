@@ -236,4 +236,6 @@ M.first_focus_over = false
 
 M.async_event = nil
 
+M.timer = nil
+
 return M

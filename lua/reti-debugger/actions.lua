@@ -280,13 +280,12 @@ function M.quit()
 	if not state.delta_windows("quit") then
 		return
 	end
+  windows.layout:unmount()
+  del_keybindings()
+  state.timer:close()
 	if not state.interpreter_completed then
-		windows.layout:unmount()
-		del_keybindings()
 		vim.loop.kill(state.interpreter_id, "sigterm")
 	else
-		windows.layout:unmount()
-		del_keybindings()
 	end
 end
 
