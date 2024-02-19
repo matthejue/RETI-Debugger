@@ -18,6 +18,18 @@ function M.delta_windows(letter)
 		M.layout_visible = true
 		-- M.popup_visible = false
 		return true
+  elseif
+		M.interpreter_completed
+		-- and M.next_blocked
+		and not M.layout_visible
+		-- and not M.popup_visible
+		and (letter == "load example" or letter == "compile")
+	then -- 1
+		-- M.interpreter_completed = false
+		-- M.next_blocked = false
+		-- M.layout_visible = true
+		-- M.popup_visible = false
+		return true
 	elseif
 		-- not M.interpreter_completed
 		-- and not M.next_blocked

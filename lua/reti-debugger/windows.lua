@@ -98,19 +98,19 @@ M.layout = Layout(
 			{
 				Layout.Box(
 					{
-						Layout.Box(M.popups.registers, { size = "50%" }), -- +2
-						Layout.Box(M.popups.registers_rel, { size = "50%" }),
+						Layout.Box(M.popups.registers, { size = "50%" }),
+						Layout.Box(M.popups.registers_rel, { size = "52%" }), -- +2
 					},
-					{ size = "35%", dir = "row" } -- +2
+					{ size = "35%", dir = "row" }
 				),
-				Layout.Box(M.popups.eprom, { size = "45%" }), -- +2
-				Layout.Box(M.popups.uart, { size = "20%" }),
+				Layout.Box(M.popups.eprom, { size = "45%" }),
+				Layout.Box(M.popups.uart, { size = "22%" }), -- +2
 			},
-			{ size = "31%", dir = "col" } -- +2
+			{ size = "31%", dir = "col" }
 		),
 		Layout.Box(M.popups.sram1, { size = "23%" }),
 		Layout.Box(M.popups.sram2, { size = "23%" }),
-		Layout.Box(M.popups.sram3, { size = "23%" }),
+		Layout.Box(M.popups.sram3, { size = "25%" }), -- +2
 	}, { size = "100%", dir = "row" })
 )
 

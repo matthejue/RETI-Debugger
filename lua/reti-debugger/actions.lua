@@ -295,6 +295,9 @@ end
 -- └────────────────────────┘
 
 function M.load_example(tbl)
+  if not state.delta_windows("load example") then
+    return
+  end
 	state.async_event = vim.loop.new_async(vim.schedule_wrap(function()
 		local script_path = debug.getinfo(1, "S").source:sub(2)
 		local plugin_path = script_path:match("(.*)/lua/reti%-debugger/actions%.lua")
@@ -400,6 +403,9 @@ local function run_compiler()
 end
 
 function M.compile()
+  if not state.delta_windows("compile") then
+    return
+  end
 	state.stdin = vim.loop.new_pipe(false)
 	state.stdout = vim.loop.new_pipe(false)
 	state.stderr = vim.loop.new_pipe(false)

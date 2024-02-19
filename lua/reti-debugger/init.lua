@@ -82,7 +82,7 @@ local M = {}
 -- definieren und es gibt buffer only keybindings und globale keybindings.
 -- Statemachine ist aus effizienzgründen nicht genauso umgesetzt, newline
 -- mentionen. Videoserie erwähnen. TUI Interface erklären, was Registers Rel
--- ist. Menu scips over currently selected options, nicht möglich in input field keine Zahl einzugeben. Title change when switching modes. Grund warum scratch buffer genutzt wegen quitten von Neovim usw. Überschrifften ändern sich bei Ändern des Modes
+-- ist. Menu scips over currently selected options, nicht möglich in input field keine Zahl einzugeben. Title change when switching modes. Grund warum scratch buffer genutzt wegen quitten von Neovim usw. Überschrifften ändern sich bei Ändern des Modes. Bug im PicoC-Compiler mit TokenError oder so gelöst
 -- [ ] mal wegen Updatespeed von Neovim schauen
 -- [x] Registers und Registers Relative muss nicht 50:50 sein
 -- [x] Eprom ist nicht mehr initial window beim starten
@@ -133,6 +133,9 @@ local M = {}
 -- [ ] Nui github verlinken bei nui in report
 -- [ ] noch nie zuvor lua programmiert oder Plugin erstellt, gelegenheit
 -- genutzt, um das zu lernen
+-- [ ] neues Beispiel laden wenn Layout geladen sperren
+-- [ ] Layout an Fenstergröße von Neovim anpassen
+-- [ ] das mit buffern von EOT implementieren
 
 local function save_state()
 	state.bufnr_on_leaving = vim.api.nvim_get_current_buf()
