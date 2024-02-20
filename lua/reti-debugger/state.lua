@@ -42,13 +42,17 @@ function M.delta_actions(input_sym)
 	then
 		return true
 	elseif
+		not M.popup_visible and input_sym == "restart"
+	then
+		return true
+	elseif
+		M.layout_visible and not M.popup_visible and input_sym == "layout"
+	then
+		return true
+	elseif
 		not M.popup_visible and input_sym == "quit"
 	then
 		M.layout_visible = false
-		return true
-	elseif
-		not M.popup_visible and input_sym == "restart"
-	then
 		return true
 	elseif
 		not M.layout_visible

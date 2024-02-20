@@ -173,7 +173,7 @@ local function set_window_options()
 		vim.schedule_wrap(function()
 			local width = vim.api.nvim_get_option("columns")
 			local height = vim.api.nvim_get_option("lines")
-			if state.width == width and state.height == height then
+			if state.width == width and state.height == height or not state.delta_actions("layout") then
 				return
 			end
 			state.width = width
