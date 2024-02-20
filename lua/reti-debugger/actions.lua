@@ -18,20 +18,20 @@ local function set_layout_events_and_keybindings(popup)
 			return
 		end
 		popup:unmount()
-		state.delta_windows("popup closed")
+		state.delta_actions("popup closed")
 	end, { once = true })
 
 	vim.keymap.set("n", state.opts.keys.quit, function()
 		popup:unmount()
-		state.delta_windows("popup closed")
+		state.delta_actions("popup closed")
 	end, { buffer = popup.bufnr, silent = true })
 	vim.keymap.set("n", "<cr>", function()
 		popup:unmount()
-		state.delta_windows("popup closed")
+		state.delta_actions("popup closed")
 	end, { buffer = popup.bufnr, silent = true })
 	vim.keymap.set("n", "<esc>", function()
 		popup:unmount()
-		state.delta_windows("popup closed")
+		state.delta_actions("popup closed")
 	end, { buffer = popup.bufnr, silent = true })
 	-- else it is annoying to get an error message for failed to find pattern when suddently walking into a print call instruction
 	vim.keymap.set("n", state.opts.keys.next, "", { buffer = popup.bufnr, silent = true })
@@ -132,14 +132,14 @@ end
 -- └─────────────────────────────────────────┘
 
 local function display_error(data)
-	state.delta_windows("popup appears")
+	state.delta_actions("popup appears")
 	windows.error_window:mount()
 	vim.api.nvim_buf_set_lines(windows.error_window.bufnr, 0, -1, false, utils.elements_in_range(utils.split(data), 2))
 	set_layout_events_and_keybindings(windows.error_window)
 end
 
 local function display_output(data)
-	state.delta_windows("popup appears")
+	state.delta_actions("popup appears")
 	windows.output_window:mount()
 	local val = string.match(data, "Output: (%-?%d*)")
 	vim.api.nvim_buf_set_lines(windows.output_window.bufnr, 0, -1, false, { val })
@@ -147,7 +147,7 @@ local function display_output(data)
 end
 
 local function ask_for_input()
-	state.delta_windows("popup appears")
+	state.delta_actions("popup appears")
 	windows.input_window:mount()
 end
 
@@ -243,7 +243,7 @@ local function next_cycle()
 end
 
 function M.next()
-	if not state.delta_windows("next") then
+	if not state.delta_actions("next") then
 		return
 	end
 	next_cycle()
@@ -260,11 +260,20 @@ function M.switch_windows(backward)
 	vim.api.nvim_set_current_win(windows.popups[windows.popups_order[windows.current_popup]].winid)
 end
 
+function M.apply_scrolling_mode_to_windows()
+	if state.scrolling_mode == state.scrolling_modes.autoscrolling then
+		windows.window_titles_autoscrolling()
+	else
+		windows.window_titles_memory_focus()
+	end
+end
+
 function M.hide_toggle()
-	if state.delta_windows("hide") then
+	if state.delta_actions("hide") then
 		windows.layout:hide()
-	elseif state.delta_windows("show") then
+	elseif state.delta_actions("show") then
 		windows.layout:show()
+    M.apply_scrolling_mode_to_windows()
 		vim.api.nvim_set_current_win(windows.popups[windows.popups_order[windows.current_popup]].winid)
 		vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
 	end
@@ -277,13 +286,13 @@ local function del_keybindings()
 end
 
 function M.quit()
-	if not state.delta_windows("quit") then
+	if not state.delta_actions("quit") then
 		return
 	end
   windows.layout:unmount()
   del_keybindings()
   state.timer:close()
-	if not state.interpreter_completed then
+	if not state.interpreter_terminated then
 		vim.loop.kill(state.interpreter_id, "sigterm")
 	else
 	end
@@ -294,7 +303,7 @@ end
 -- └────────────────────────┘
 
 function M.load_example(tbl)
-  if not state.delta_windows("load example") then
+  if not state.delta_actions("load") then
     return
   end
 	state.async_event = vim.loop.new_async(vim.schedule_wrap(function()
@@ -359,7 +368,7 @@ function M.load_example(tbl)
 	end))
 
 	if tbl.args == "" then
-		state.delta_windows("popup appears")
+		state.delta_actions("popup appears")
 		windows.menu_examples:mount()
 		return
 	end
@@ -402,7 +411,7 @@ local function run_compiler()
 end
 
 function M.compile()
-  if not state.delta_windows("compile") then
+  if not state.delta_actions("compile") then
     return
   end
 	state.stdin = vim.loop.new_pipe(false)

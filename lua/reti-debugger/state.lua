@@ -1,186 +1,66 @@
 local M = {}
 
-M.interpreter_completed = true
-M.next_blocked = true
+M.interpreter_terminated = true
 M.layout_visible = false
 M.popup_visible = false
 
-function M.delta_windows(letter)
+function M.delta_actions(input_sym)
 	if
-		M.interpreter_completed
-		-- and M.next_blocked
+		M.interpreter_terminated
 		and not M.layout_visible
-		-- and not M.popup_visible
-		and letter == "start"
-	then -- 1
-		M.interpreter_completed = false
-		M.next_blocked = false
+		and input_sym == "start"
+	then
+		M.interpreter_terminated = false
 		M.layout_visible = true
-		-- M.popup_visible = false
 		return true
   elseif
-		M.interpreter_completed
-		-- and M.next_blocked
+		M.interpreter_terminated
 		and not M.layout_visible
-		-- and not M.popup_visible
-		and (letter == "load example" or letter == "compile")
-	then -- 1
-		-- M.interpreter_completed = false
-		-- M.next_blocked = false
-		-- M.layout_visible = true
-		-- M.popup_visible = false
+		and (input_sym == "load" or input_sym == "compile")
+	then
 		return true
 	elseif
-		-- not M.interpreter_completed
-		-- and not M.next_blocked
-		-- and M.layout_visble
-		-- and not M.popup_visible
-		-- and
-		letter == "complete"
-	then -- 2
-		M.interpreter_completed = true
-		M.next_blocked = true
-		-- M.layout_visble = true
-		-- M.popup_visible = false
+		input_sym == "complete"
+	then
+		M.interpreter_terminated = true
 		return true
 	elseif
-		-- not M.interpreter_completed
-		-- and
-		-- not M.next_blocked
-		-- and
 		M.layout_visible
 		and not M.popup_visible
-		and letter == "hide"
-	then -- 3
-		-- M.interpreter_completed = false
-		-- M.next_blocked = true
+		and input_sym == "hide"
+	then
 		M.layout_visible = false
-		-- M.popup_visible = false
 		return true
 	elseif
-		-- not M.interpreter_completed
-		-- and
-		-- not M.next_blocked
-		-- and
-		-- M.layout_visible
-		-- and not M.popup_visible
-		-- and
-		letter == "popup appears"
-	then -- 4
-		-- M.interpreter_completed = false
-		M.next_blocked = true
-		-- M.layout_visible = true
+		input_sym == "popup appears"
+	then
 		M.popup_visible = true
 		return true
 	elseif
-		-- not M.interpreter_completed
-		-- and
-		not M.next_blocked
-		-- and M.layout_visible
-		and not M.popup_visible
-		and letter == "next"
+		not M.popup_visible
+		and input_sym == "next"
 	then
-		-- M.interpreter_completed = false
-		-- M.next_blocked = false
-		-- M.layout_visible = true
-		-- M.popup_visible = false
 		return true
-	-- elseif
-	-- 	not M.interpreter_completed
-	-- 	-- and not M.next_blocked
-	-- 	-- and M.layout_visible
-	--    and not M.popup_visible
-	-- 	and letter == "restart"
-	-- then
-	-- 	-- M.interpreter_completed = false
-	-- 	-- M.next_blocked = false
-	-- 	-- M.layout_visible = true
-	-- 	-- M.popup_visible = false
-	-- 	return true
 	elseif
-		-- not M.interpreter_completed
-		-- and not M.next_blocked
-		-- and M.layout_visible
-		-- and
-		not M.popup_visible and letter == "quit"
-	then -- 5
-		-- M.interpreter_completed = true
-		M.next_blocked = true
+		not M.popup_visible and input_sym == "quit"
+	then
 		M.layout_visible = false
-		-- M.popup_visible = false
 		return true
-		-- elseif
-		-- 	M.interpreter_completed
-		-- 	and M.next_blocked
-		-- 	and M.layout_visible
-		-- 	and not M.popup_visible
-		-- 	and letter == "hide"
-		-- then -- 6
-		-- 	M.interpreter_completed = false
-		-- 	M.next_blocked = false
-		-- 	M.layout_visible = true
-		-- 	M.popup_visible = true
 	elseif
-		-- M.interpreter_completed
-		-- and M.next_blocked
-		-- and M.layout_visible
-		-- and
-		not M.popup_visible and letter == "restart"
-	then -- 6
-		-- done by start function called within restart
-		-- 	M.interpreter_completed = false
-		-- 	M.next_blocked = false
-		-- 	M.layout_visible = true
-		-- M.popup_visible = false
+		not M.popup_visible and input_sym == "restart"
+	then
 		return true
-		-- elseif
-		-- 	M.interpreter_completed
-		-- 	and M.next_blocked
-		-- 	and M.layout_visible
-		-- 	and not M.popup_visible
-		-- 	and letter == "quit"
-		-- then -- 8
-		-- 	M.interpreter_completed = true
-		-- 	M.next_blocked = true
-		-- 	M.layout_visible = false
-		-- 	M.popup_visible = false
 	elseif
-		-- not M.interpreter_completed
-		-- and M.next_blocked
-		-- and
 		not M.layout_visible
-		-- and not M.popup_visible
-		and letter == "show"
-	then -- 7
-		-- M.interpreter_completed = false
-		-- M.next_blocked = false
+		and input_sym == "show"
+	then
 		M.layout_visible = true
-		-- M.popup_visible = false
 		return true
 	elseif
-		-- not M.interpreter_completed
-		-- and M.next_blocked
-		-- and M.layout_visible
-		-- and M.popup_visible
-		-- and
-		letter == "popup closed"
-	then -- 8
-		-- M.interpreter_completed = false
-		M.next_blocked = false
-		-- M.layout_visible = true
+		input_sym == "popup closed"
+	then
 		M.popup_visible = false
 		return true
-		-- elseif
-		-- 	M.interpreter_completed
-		-- 	and M.next_blocked
-		-- 	and not M.layout_visible
-		-- 	and not M.popup_visible
-		-- 	and letter == "show"
-		-- then -- 9
-		-- 	M.interpreter_completed = true
-		-- 	M.next_blocked = true
-		-- 	M.layout_visible = true
-		-- 	M.popup_visible = false
 	end
 	return false
 end
@@ -237,5 +117,8 @@ M.first_focus_over = false
 M.async_event = nil
 
 M.timer = nil
+
+M.width = 0
+M.height = 0
 
 return M

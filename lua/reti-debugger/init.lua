@@ -153,7 +153,7 @@ local function start_interpreter()
 		args = { "-E", "reti", "-P" },
 		stdio = { state.stdin, state.stdout, state.stderr },
 	}, function(code, signal)
-		state.delta_windows("complete")
+		state.delta_actions("complete")
 		vim.loop.shutdown(state.stdin, function(err)
 			assert(not err, err)
 			vim.loop.close(state.handle, function() end)
@@ -165,22 +165,28 @@ end
 local function set_window_options()
 	vim.api.nvim_win_set_option(windows.popups.sram1.winid, "scrolloff", 999)
 
-	if state.scrolling_mode == state.scrolling_modes.autoscrolling then
-		windows.window_titles_autoscrolling()
-	else
-		windows.window_titles_memory_focus()
-	end
-  state.timer = vim.loop.new_timer()
-	state.timer:start(1000, 1000, vim.schedule_wrap(function()
-		local width = vim.api.nvim_get_option("columns")
-		local height = vim.api.nvim_get_option("lines")
-		windows.layout:update({
-			size = {
-				width = width,
-				height = height,
-			},
-		})
-	end))
+	actions.apply_scrolling_mode_to_windows()
+	state.timer = vim.loop.new_timer()
+	state.timer:start(
+		1000,
+		1000,
+		vim.schedule_wrap(function()
+			local width = vim.api.nvim_get_option("columns")
+			local height = vim.api.nvim_get_option("lines")
+			if state.width == width and state.height == height then
+				return
+			end
+			state.width = width
+			state.height = height
+			windows.layout:update({
+				size = {
+					width = width,
+					height = height,
+				},
+			})
+			actions.apply_scrolling_mode_to_windows()
+		end)
+	)
 end
 
 local function set_keybindings()
@@ -201,7 +207,7 @@ local function set_keybindings()
 			actions.switch_windows(true)
 		end, { buffer = popup.bufnr, silent = true, desc = "Switch windows backward" })
 		vim.keymap.set("n", state.opts.keys.switch_mode, function()
-			state.delta_windows("popup appears")
+			state.delta_actions("popup appears")
 			windows.menu_modes:mount()
 		end, { buffer = popup.bufnr, silent = true, desc = "Menu to switch mode" })
 		vim.keymap.set("n", state.opts.keys.focus_memory, function()
@@ -236,8 +242,8 @@ local function set_global_keybindings()
 		vim.keymap.set(
 			"n",
 			state.opts.keys.load_example,
-			":LoadRETIExample<cr>",
-			{ silent = true, desc = "Load an example" }
+			":LoadPicoCExample<cr>",
+			{ silent = true, desc = "Load an example PicoC program" }
 		)
 	end
 	if state.opts.keys.compile then
@@ -255,9 +261,9 @@ end
 
 local function set_commands()
 	vim.api.nvim_create_user_command(
-		"LoadRETIExample",
+		"LoadPicoCExample",
 		actions.load_example,
-		{ desc = "Load an example program", nargs = "?" }
+		{ desc = "Load an example PicoC program", nargs = "?" }
 	)
 	vim.api.nvim_create_user_command("CompilePicoCBuffer", actions.compile, { desc = "Compile from PicoC to RETI" })
 	vim.api.nvim_create_user_command("StartRETIBuffer", M.start, { desc = "Start RETI-Debugger" })
@@ -271,7 +277,7 @@ function M.setup(opts)
 end
 
 function M.start()
-	if not state.delta_windows("start") then
+	if not state.delta_actions("start") then
 		return
 	end
 	state.delta_focus("start")
@@ -285,7 +291,7 @@ function M.start()
 end
 
 function M.restart()
-	if not state.delta_windows("restart") then
+	if not state.delta_actions("restart") then
 		return
 	end
 	actions.quit()
@@ -295,7 +301,7 @@ function M.restart()
 		return
 	end
 	if not vim.wait(5000, function()
-		return state.interpreter_completed
+		return state.interpreter_terminated
 	end) then
 		return
 	end
