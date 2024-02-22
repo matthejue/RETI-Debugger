@@ -12,8 +12,10 @@
     <a href="https://youtu.be/p5zNdTiBRNg?feature=shared">Video: Manual installation for Ubuntu 24.04</a>
     <br />
     <a href="https://youtu.be/rTsYTDNR0do?feature=shared">Video: Feature showcase and implementation details</a>
+    <br />
+    <a href="https://github.com/matthejue/RETI-Debugger_Documentation/releases/download/master/Report.pdf">Report PDF</a> (Installation instructions in the Appendix)
     ·
-    <a href="https://github.com/matthejue/RETI-Debugger_Documentation/releases/download/master/Report.pdf">Report</a> (Installation instructions in the Appendix)
+    <a href="https://github.com/matthejue/RETI-Debugger_Documentation">Report Source code</a>
     <br />
   </p>
 </div>
