@@ -21,3 +21,11 @@
 </div>
 
 [![asciicast](./misc/demo_recording.svg)](https://asciinema.org/a/640765)
+
+# Installing the newest commit demo
+
+[![asciicast](https://asciinema.org/a/642210.svg)](https://asciinema.org/a/642210)
+
+# Installing the artifact commit demo
+
+[![asciicast](https://asciinema.org/a/642258.svg)](https://asciinema.org/a/642258)
