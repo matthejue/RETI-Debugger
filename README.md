@@ -15,7 +15,7 @@
     <br />
     <a href="https://github.com/matthejue/RETI-Debugger_Documentation/releases/download/master/Report.pdf">Report PDF</a> (Installation instructions in the Appendix)
     ·
-    <a href="https://github.com/matthejue/RETI-Debugger_Documentation">Report Source code</a>
+    <a href="https://github.com/matthejue/RETI-Debugger_Documentation">Report source code</a>
     <br />
   </p>
 </div>

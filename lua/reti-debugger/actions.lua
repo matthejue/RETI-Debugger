@@ -7,7 +7,6 @@ local M = {}
 -- ┌────────────────────────┐
 -- │ Keybindings and events │
 -- └────────────────────────┘
-
 -- to prevent window closing immediately after opening in autoscrolling mode
 M.autoscrolling_over = false
 

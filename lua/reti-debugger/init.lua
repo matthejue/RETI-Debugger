@@ -136,6 +136,9 @@ local M = {}
 -- [ ] neues Beispiel laden wenn Layout geladen sperren
 -- [ ] Layout an Fenstergröße von Neovim anpassen
 -- [ ] das mit buffern von EOT implementieren
+-- [ ] in example menu sollte es nicht Einträge skippen
+-- [ ] neue README pushen
+-- [ ] erwähnen, dass Fleury erlaubt hat eigenes Template zu nutzen
 
 local function save_state()
 	state.bufnr_on_leaving = vim.api.nvim_get_current_buf()

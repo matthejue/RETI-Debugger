@@ -280,7 +280,7 @@ M.menu_modes = Menu(popup_options_menu, {
 -- ┌───────────────┐
 -- │ Menu examples │
 -- └───────────────┘
-M.keys = {
+M.examples = {
 	"bsearch_it",
 	"bsearch_rec",
 	"bubble_sort",
@@ -307,38 +307,11 @@ M.keys = {
 	"prime_numbers",
 	"simple_input_output",
 }
-M.examples = {
-	["bsearch_it"] = 1,
-	["bsearch_rec"] = 2,
-	["bubble_sort"] = 3,
-	["exercise_from_sheets1"] = 4,
-	["exercise_from_sheets2"] = 5,
-	["exercise_from_sheets3"] = 6,
-	["exercise_from_sheets4"] = 7,
-	["exercise_from_sheets5"] = 8,
-	["exercise_from_sheets6"] = 9,
-	["faculty_it"] = 10,
-	["faculty_rec"] = 11,
-	["fib_it"] = 12,
-	["fib_rec"] = 13,
-	["fib_rec_efficient"] = 14,
-	["gcd"] = 15,
-	["log2"] = 16,
-	["min_sort"] = 17,
-	["pair_sort"] = 18,
-	["pair_sort2"] = 19,
-	["power_it"] = 20,
-	["power_it_efficient"] = 21,
-	["power_rec"] = 22,
-	["power_rec_efficient"] = 23,
-	["prime_numbers"] = 24,
-	["simple_input_output"] = 25,
-}
 M.example = nil
 
 local lines = {}
-for _, key in pairs(M.keys) do
-	table.insert(lines, Menu.item(key, { id = M.examples[key] }))
+for idx, example in pairs(M.examples) do
+	table.insert(lines, Menu.item(example, { id = idx }))
 end
 
 popup_options_menu.border.text.top = "Choose Example"
@@ -351,13 +324,6 @@ M.menu_examples = Menu(popup_options_menu, {
 		M.example = item.id
     vim.loop.async_send(state.async_event)
     state.delta_actions("popup closed")
-	end,
-	should_skip_item = function(item)
-		if item.id == M.example then
-			return true
-		else
-			return false
-		end
 	end,
   on_close = function()
     state.delta_actions("popup closed")
